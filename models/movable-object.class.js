@@ -1,34 +1,32 @@
 /**
- * Represents a game object that can move around the game world.
+ * Represents a game object that can move through the game world.
  */
 class MovableObject extends DrawableObject {
 
     /** @type {number} Movement speed in pixels. */
     speed = 5;
 
-    /** @type {boolean} Indicates whether the object is facing left. */
+    /** @type {boolean} Indicates whether the object should be flipped horizontally. */
     otherDirection = false;
 
 
     /**
-    * Moves the object to the right.
-    *
-    * @returns {void}
-    */
+     * Moves the object to the right.
+     *
+     * @returns {void}
+     */
     moveRight() {
         this.x += this.speed;
-        this.otherDirection = false;
     }
 
 
     /**
-    * Moves the object to the left.
-    *
-    * @returns {void}
-    */
+     * Moves the object to the left.
+     *
+     * @returns {void}
+     */
     moveLeft() {
         this.x -= this.speed;
-        this.otherDirection = true;
     }
 
 
@@ -50,6 +48,4 @@ class MovableObject extends DrawableObject {
     moveDown() {
         this.y += this.speed;
     }
-
-    
 }

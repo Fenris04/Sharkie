@@ -113,11 +113,38 @@ class Character extends MovableObject {
      * @returns {void}
      */
     move() {
-        if (this.keyboard.RIGHT && this.canMoveRight()) this.moveRight();
-        if (this.keyboard.LEFT && this.canMoveLeft()) this.moveLeft();
-        if (this.keyboard.UP && this.canMoveUp()) this.moveUp();
-        if (this.keyboard.DOWN && this.canMoveDown()) this.moveDown();
+        this.moveHorizontally();
+        this.moveVertically();
     }
+
+    /**
+    * Moves Sharkie horizontally and updates his facing direction.
+     *
+    * @returns {void}
+    */
+    moveHorizontally() {
+        if (this.keyboard.RIGHT && this.canMoveRight()) {
+            this.moveRight();
+            this.otherDirection = false;
+        }
+
+        if (this.keyboard.LEFT && this.canMoveLeft()) {
+            this.moveLeft();
+            this.otherDirection = true;
+        }
+    }
+
+
+
+/**
+ * Moves Sharkie vertically.
+ *
+ * @returns {void}
+ */
+moveVertically() {
+    if (this.keyboard.UP && this.canMoveUp()) this.moveUp();
+    if (this.keyboard.DOWN && this.canMoveDown()) this.moveDown();
+}
 
 
     /**

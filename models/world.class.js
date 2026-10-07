@@ -26,6 +26,13 @@ class World {
         new BackgroundObject('assets/3. Background/Light/full.png', 1440)
     ];
 
+    /** @type {PufferFish[]} Enemies currently inside the game world. */
+    enemies = [
+    new PufferFish(900, 100),
+    new PufferFish(1300, 280),
+    new PufferFish(1800, 180)
+    ];
+
 
     /**
      * Creates the game world.
@@ -56,15 +63,17 @@ class World {
 
 
     /**
-     * Draws all objects that belong to the game world.
-     *
-     * @returns {void}
-     */
+    * Draws all objects that belong to the game world.
+    *
+    * @returns {void}
+    */
     drawGameWorld() {
         this.ctx.save();
         this.ctx.translate(this.cameraX, 0);
 
         this.addObjectsToMap(this.backgrounds);
+        this.addObjectsToMap(this.enemies);
+
         this.character.move();
         this.character.draw(this.ctx);
 
