@@ -6,24 +6,29 @@ class MovableObject extends DrawableObject {
     /** @type {number} Movement speed in pixels. */
     speed = 5;
 
+    /** @type {boolean} Indicates whether the object is facing left. */
+    otherDirection = false;
+
 
     /**
-     * Moves the object to the right.
-     *
-     * @returns {void}
-     */
+    * Moves the object to the right.
+    *
+    * @returns {void}
+    */
     moveRight() {
         this.x += this.speed;
+        this.otherDirection = false;
     }
 
 
     /**
-     * Moves the object to the left.
-     *
-     * @returns {void}
-     */
+    * Moves the object to the left.
+    *
+    * @returns {void}
+    */
     moveLeft() {
         this.x -= this.speed;
+        this.otherDirection = true;
     }
 
 
@@ -45,4 +50,6 @@ class MovableObject extends DrawableObject {
     moveDown() {
         this.y += this.speed;
     }
+
+    
 }
