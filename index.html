@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sharkie</title>
 
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" />
 
     <script src="models/drawable-object.class.js" defer></script>
     <script src="models/movable-object.class.js" defer></script>
@@ -18,12 +18,25 @@
 
     <script src="js/keyboard.js" defer></script>
     <script src="js/game.js" defer></script>
-</head>
+  </head>
 
-<body>
+  <body>
     <h1>Sharkie</h1>
 
-    <canvas id="canvas" width="720" height="480"></canvas>
+    <div class="game-container">
+      <canvas id="canvas" width="720" height="480"></canvas>
 
-</body>
+      <div id="game-over-screen" class="game-over-screen">
+        <img
+          class="game-over-title"
+          src="assets/6.Botones/Tittles/Game Over/Recurso 13.png"
+          alt="Game Over"
+        />
+
+        <button id="restart-button" class="restart-button" type="button">
+          Try again
+        </button>
+      </div>
+    </div>
+  </body>
 </html>

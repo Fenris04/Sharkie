@@ -45,6 +45,9 @@ class World {
     /** @type {StatusBar} Displays Sharkie's current health. */
     statusBar = new StatusBar();
 
+    /** @type {boolean} Indicates whether the game-over screen is visible. */
+    gameOver = false;
+
 
     /**
      * Creates a new game world.
@@ -83,6 +86,7 @@ class World {
         this.character.move();
         this.checkCollisions();
         this.updateCamera();
+        this.checkGameOver();
     }
 
 
@@ -195,5 +199,38 @@ class World {
 
         this.cameraX = Math.min(0, desiredCameraX);
         this.cameraX = Math.max(minCameraX, this.cameraX);
+    }
+
+    /**
+    * Checks whether the game should enter the game-over state.
+    *
+    * @returns {void}
+    */
+    checkGameOver() {
+        if (!this.character.isDeathAnimationFinished()) {
+            return;
+        }
+
+        this.showGameOverScreen();
+    }
+
+
+    /**
+    * Displays the game-over screen once.
+    *
+    * @returns {void}
+    */
+    showGameOverScreen() {
+        if (this.gameOver) {
+            return;
+        }
+
+        this.gameOver = true;
+
+        const gameOverScreen = document.getElementById(
+            'game-over-screen'
+        );
+
+        gameOverScreen.classList.add('visible');
     }
 }

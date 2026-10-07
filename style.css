@@ -10,3 +10,38 @@ body {
 canvas {
     border: 2px solid black;
 }
+
+.game-container {
+    position: relative;
+    width: 720px;
+    height: 480px;
+}
+
+.game-over-screen {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 32px;
+    background-color: rgba(0, 0, 0, 0.45);
+}
+
+.game-over-screen.visible {
+    display: flex;
+}
+
+.game-over-title {
+    width: 75%;
+    height: auto;
+}
+
+.restart-button {
+    padding: 12px 28px;
+    border: none;
+    border-radius: 12px;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+}

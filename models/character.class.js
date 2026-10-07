@@ -367,4 +367,13 @@ class Character extends MovableObject {
     isDead() {
         return this.energy === 0;
     }
+
+    /**
+    * Checks whether Sharkie's death animation has finished.
+    *
+    * @returns {boolean} True when Sharkie is dead and the animation is complete.
+    */
+    isDeathAnimationFinished() {
+        return this.isDead() && this.deathAnimationFinished;
+    }
 }
