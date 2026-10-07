@@ -23,12 +23,14 @@ function init() {
 
 
 /**
- * Continuously redraws the game on the canvas.
+ * Continuously updates and redraws the game.
  *
  * @returns {void}
  */
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    moveCharacter();
     character.draw(ctx);
 
     requestAnimationFrame(draw);
@@ -36,3 +38,15 @@ function draw() {
 
 
 init();
+
+/**
+ * Moves Sharkie according to the currently pressed keys.
+ *
+ * @returns {void}
+ */
+function moveCharacter() {
+    if (keyboard.RIGHT) character.moveRight();
+    if (keyboard.LEFT) character.moveLeft();
+    if (keyboard.UP) character.moveUp();
+    if (keyboard.DOWN) character.moveDown();
+}

@@ -1,7 +1,7 @@
 /**
  * Represents the playable character Sharkie.
  */
-class Character extends DrawableObject {
+class Character extends MovableObject {
 
     /** @type {number} Horizontal start position of Sharkie. */
     x = 100;
