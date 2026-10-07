@@ -1,43 +1,55 @@
 /**
- * Represents the game world.
- * Manages the character, backgrounds, camera and rendering.
+ * Represents the complete game world.
+ * Controls rendering, movement, collisions and the camera.
  */
 class World {
-
-    /** @type {Character} The playable Sharkie character. */
-    character;
 
     /** @type {HTMLCanvasElement} Canvas used to display the game. */
     canvas;
 
-    /** @type {CanvasRenderingContext2D} Drawing context of the canvas. */
+    /** @type {CanvasRenderingContext2D} Rendering context of the canvas. */
     ctx;
 
-    /** @type {number} Total width of the game world in pixels. */
+    /** @type {Character} The playable character Sharkie. */
+    character;
+
+    /** @type {number} Total width of the game world. */
     levelWidth = 2160;
 
-    /** @type {number} Horizontal position of the camera. */
+    /** @type {number} Current horizontal camera position. */
     cameraX = 0;
 
     /** @type {BackgroundObject[]} Background images of the game world. */
     backgrounds = [
-        new BackgroundObject('assets/3. Background/Light/full.png', 0),
-        new BackgroundObject('assets/3. Background/Light/full.png', 720),
-        new BackgroundObject('assets/3. Background/Light/full.png', 1440)
+        new BackgroundObject(
+            'assets/3. Background/Light/full.png',
+            0
+        ),
+        new BackgroundObject(
+            'assets/3. Background/Light/full.png',
+            720
+        ),
+        new BackgroundObject(
+            'assets/3. Background/Light/full.png',
+            1440
+        )
     ];
 
-    /** @type {PufferFish[]} Enemies currently inside the game world. */
+    /** @type {PufferFish[]} Enemies currently placed in the game world. */
     enemies = [
-    new PufferFish(900, 100),
-    new PufferFish(1300, 280),
-    new PufferFish(1800, 180)
+        new PufferFish(900, 100),
+        new PufferFish(1300, 280),
+        new PufferFish(1800, 180)
     ];
+
+    /** @type {StatusBar} Displays Sharkie's current health. */
+    statusBar = new StatusBar();
 
 
     /**
-     * Creates the game world.
+     * Creates a new game world.
      *
-     * @param {HTMLCanvasElement} canvas - Canvas used to display the game.
+     * @param {HTMLCanvasElement} canvas - Canvas used to render the game.
      */
     constructor(canvas) {
         this.canvas = canvas;
@@ -55,73 +67,27 @@ class World {
      */
     draw() {
         this.clearCanvas();
+        this.update();
         this.drawGameWorld();
-        this.updateCamera();
 
         requestAnimationFrame(() => this.draw());
     }
 
 
- /**
- * Draws all objects that belong to the game world.
- *
- * @returns {void}
- */
-drawGameWorld() {
-    this.ctx.save();
-    this.ctx.translate(this.cameraX, 0);
-
-    this.addObjectsToMap(this.backgrounds);
-    this.addObjectsToMap(this.enemies);
-    this.character.move();
-    this.character.draw(this.ctx);
-    this.drawHitboxes();
-
-    this.ctx.restore();
-}
-
-/**
- * Draws hitboxes of relevant game objects for development.
- *
- * @returns {void}
- */
-drawHitboxes() {
-    this.character.drawHitbox(this.ctx);
-
-    this.enemies.forEach(enemy => {
-        enemy.drawHitbox(this.ctx);
-    });
-}
-
-
-
     /**
-     * Draws every object of an array onto the canvas.
+     * Updates all game logic before the next frame is drawn.
      *
-     * @param {DrawableObject[]} objects - Objects that should be drawn.
      * @returns {void}
      */
-    addObjectsToMap(objects) {
-        objects.forEach(object => object.draw(this.ctx));
+    update() {
+        this.character.move();
+        this.checkCollisions();
+        this.updateCamera();
     }
 
 
     /**
-    * Updates the camera position while keeping it inside the level.
-    *
-    * @returns {void}
-     */
-    updateCamera() {
-        const desiredCameraX = -this.character.x + 150;
-        const minCameraX = -(this.levelWidth - this.canvas.width);
-
-        this.cameraX = Math.min(0, desiredCameraX);
-        this.cameraX = Math.max(minCameraX, this.cameraX);
-    }
-
-
-    /**
-     * Clears the canvas before drawing the next frame.
+     * Clears the complete canvas before drawing the next frame.
      *
      * @returns {void}
      */
@@ -132,5 +98,102 @@ drawHitboxes() {
             this.canvas.width,
             this.canvas.height
         );
+    }
+
+
+    /**
+     * Draws the game world and the fixed user interface.
+     *
+     * @returns {void}
+     */
+    drawGameWorld() {
+        this.ctx.save();
+        this.ctx.translate(this.cameraX, 0);
+
+        this.drawWorldObjects();
+
+        this.ctx.restore();
+
+        this.statusBar.draw(this.ctx);
+    }
+
+
+    /**
+     * Draws all objects that move together with the game world.
+     *
+     * @returns {void}
+     */
+    drawWorldObjects() {
+        this.addObjectsToMap(this.backgrounds);
+        this.addObjectsToMap(this.enemies);
+        this.character.draw(this.ctx);
+        this.drawHitboxes();
+    }
+
+
+    /**
+     * Draws multiple drawable objects onto the canvas.
+     *
+     * @param {DrawableObject[]} objects - Objects that should be drawn.
+     * @returns {void}
+     */
+    addObjectsToMap(objects) {
+        objects.forEach(object => {
+            object.draw(this.ctx);
+        });
+    }
+
+
+    /**
+     * Draws the collision hitboxes for development purposes.
+     *
+     * @returns {void}
+     */
+    drawHitboxes() {
+        this.character.drawHitbox(this.ctx);
+
+        this.enemies.forEach(enemy => {
+            enemy.drawHitbox(this.ctx);
+        });
+    }
+
+
+    /**
+     * Checks collisions between Sharkie and all enemies.
+     *
+     * @returns {void}
+     */
+    checkCollisions() {
+        this.enemies.forEach(enemy => {
+            if (this.character.isColliding(enemy)) {
+                this.damageCharacter();
+            }
+        });
+    }
+
+
+    /**
+     * Damages Sharkie and updates the health status bar.
+     *
+     * @returns {void}
+     */
+    damageCharacter() {
+        this.character.hit(20);
+        this.statusBar.setPercentage(this.character.energy);
+    }
+
+
+    /**
+     * Updates the horizontal camera position based on Sharkie's position.
+     * Prevents the camera from moving outside the game world.
+     *
+     * @returns {void}
+     */
+    updateCamera() {
+        const desiredCameraX = -this.character.x + 150;
+        const minCameraX = -(this.levelWidth - this.canvas.width);
+
+        this.cameraX = Math.min(0, desiredCameraX);
+        this.cameraX = Math.max(minCameraX, this.cameraX);
     }
 }

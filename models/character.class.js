@@ -43,6 +43,15 @@ class Character extends MovableObject {
     /** @type {number} Empty space on Sharkie's left side. */
     offsetLeft = 65;
 
+    /** @type {number} Current health of Sharkie in percent. */
+    energy = 100;
+
+    /** @type {number} Timestamp of the last received hit. */
+    lastHit = 0;
+
+    /** @type {number} Time in milliseconds Sharkie is protected after a hit. */
+    hitCooldown = 1000;
+
     /**
     * Creates Sharkie and prepares his animations and controls.
     *
@@ -208,4 +217,38 @@ moveVertically() {
     canMoveDown() {
         return this.y + this.height < 480;
     }
+
+    /**
+    * Reduces Sharkie's energy when he receives damage.
+    *
+    * @param {number} damage - Amount of energy to remove.
+    * @returns {void}
+    */
+    hit(damage) {
+        if (!this.canReceiveDamage()) return;
+
+        this.energy = Math.max(0, this.energy - damage);
+        this.lastHit = Date.now();
+    }
+
+
+    /**
+    * Checks whether Sharkie can currently receive damage.
+    *
+    * @returns {boolean} True if the hit cooldown has expired.
+    */
+    canReceiveDamage() {
+        return Date.now() - this.lastHit > this.hitCooldown;
+    }
+
+
+    /**
+    * Checks whether Sharkie has no energy left.
+    *
+    * @returns {boolean} True if Sharkie is dead.
+    */
+    isDead() {
+        return this.energy === 0;
+    }
+
 }
