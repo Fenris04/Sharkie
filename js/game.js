@@ -7,6 +7,9 @@ let ctx;
 /** @type {Character} Playable Sharkie character. */
 let character;
 
+/** @type {BackgroundObject} Background of the game world. */
+let background;
+
 
 /**
  * Initializes the game.
@@ -16,6 +19,12 @@ let character;
 function init() {
     canvas = document.getElementById('canvas');
     ctx = canvas.getContext('2d');
+
+    background = new BackgroundObject(
+    'assets/3. Background/Light/full.png',
+    0
+    );
+
     character = new Character();
 
     draw();
@@ -30,6 +39,7 @@ function init() {
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    background.draw(ctx);
     moveCharacter();
     character.draw(ctx);
 

@@ -58,4 +58,15 @@ class DrawableObject {
       ctx.restore();
     }
 
+
+    /**
+    * Loads an image from the given path.
+    *
+    * @param {string} imagePath - Path to the image file.
+    * @returns {void}
+    */
+    loadImage(imagePath) {
+      this.img = new Image();
+      this.img.src = imagePath;
+    }
 }
