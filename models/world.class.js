@@ -5,7 +5,7 @@
 class World {
 
     /** @type {Character} The playable Sharkie character. */
-    character = new Character();
+    character;
 
     /** @type {BackgroundObject} Background of the game world. */
     background = new BackgroundObject(
@@ -28,6 +28,7 @@ class World {
     constructor(canvas) {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
+        this.character = new Character(keyboard);
 
         this.draw();
     }
@@ -41,7 +42,8 @@ class World {
     draw() {
         this.clearCanvas();
         this.background.draw(this.ctx);
-        this.moveCharacter();
+
+        this.character.move();
         this.character.draw(this.ctx);
 
         requestAnimationFrame(() => this.draw());
@@ -60,29 +62,5 @@ class World {
             this.canvas.width,
             this.canvas.height
         );
-    }
-
-
-    /**
-     * Moves Sharkie according to the currently pressed arrow keys.
-     *
-     * @returns {void}
-     */
-    moveCharacter() {
-        if (keyboard.RIGHT && this.character.canMoveRight()) {
-            this.character.moveRight();
-        }
-
-        if (keyboard.LEFT && this.character.canMoveLeft()) {
-            this.character.moveLeft();
-        }
-
-        if (keyboard.UP && this.character.canMoveUp()) {
-            this.character.moveUp();
-        }
-
-        if (keyboard.DOWN && this.character.canMoveDown()) {
-            this.character.moveDown();
-        }
     }
 }

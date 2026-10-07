@@ -21,12 +21,19 @@ class Character extends MovableObject {
     /** @type {HTMLImageElement[]} Images of the idle animation. */
     idleImages = [];
 
+    /** @type {Object} Current keyboard input state. */
+    keyboard;
+
 
     /**
-     * Creates Sharkie and starts the idle animation.
-     */
-    constructor() {
+    * Creates Sharkie and prepares his animations and controls.
+    *
+    * @param {Object} keyboard - Current keyboard input state.
+    */
+    constructor(keyboard) {
         super();
+        this.keyboard = keyboard;
+
         this.loadIdleImages();
         this.loadSwimImages();
         this.animate();
@@ -99,6 +106,18 @@ class Character extends MovableObject {
 
 
     /**
+    * Updates Sharkie's position according to the current keyboard input.
+    *
+    * @returns {void}
+    */
+    move() {
+        if (this.keyboard.RIGHT && this.canMoveRight()) this.moveRight();
+        if (this.keyboard.LEFT && this.canMoveLeft()) this.moveLeft();
+        if (this.keyboard.UP && this.canMoveUp()) this.moveUp();
+        if (this.keyboard.DOWN && this.canMoveDown()) this.moveDown();
+    }
+
+    /**
     * Checks whether Sharkie can move to the left.
      *
     * @returns {boolean} True if Sharkie is inside the left boundary.
@@ -131,15 +150,15 @@ class Character extends MovableObject {
     swimImages = [];
 
     /**
-    * Checks whether Sharkie is currently moving.
+    * Checks whether Sharkie is currently being moved by the player.
     *
-    * @returns {boolean} True if a movement key is pressed.
+    * @returns {boolean} True if at least one movement key is pressed.
     */
     isMoving() {
-        return keyboard.RIGHT ||
-            keyboard.LEFT ||
-            keyboard.UP ||
-            keyboard.DOWN;
-    }    
+        return this.keyboard.RIGHT ||
+            this.keyboard.LEFT ||
+            this.keyboard.UP ||
+            this.keyboard.DOWN;
+    }  
 }
 
