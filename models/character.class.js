@@ -61,6 +61,9 @@ class Character extends MovableObject {
     /** @type {number} Left offset of Sharkie's collision box. */
     offsetLeft = 65;
 
+    /** @type {number|null} ID of Sharkie's animation interval. */
+    animationInterval = null;
+
 
     /**
      * Creates Sharkie and loads all required animations.
@@ -143,13 +146,13 @@ class Character extends MovableObject {
     }
 
 
-    /**
-     * Starts Sharkie's animation loop.
-     *
-     * @returns {void}
-     */
+   /**
+    * Starts Sharkie's animation loop.
+    *
+    * @returns {void}
+    */
     animate() {
-        setInterval(() => {
+        this.animationInterval = setInterval(() => {
             this.updateAnimation();
         }, 150);
     }
@@ -375,5 +378,14 @@ class Character extends MovableObject {
     */
     isDeathAnimationFinished() {
         return this.isDead() && this.deathAnimationFinished;
+    }
+
+    /**
+    * Stops all running intervals of Sharkie.
+    *
+    * @returns {void}
+    */
+    stopIntervals() {
+        clearInterval(this.animationInterval);
     }
 }

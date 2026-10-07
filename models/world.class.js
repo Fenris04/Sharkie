@@ -48,6 +48,9 @@ class World {
     /** @type {boolean} Indicates whether the game-over screen is visible. */
     gameOver = false;
 
+    /** @type {boolean} Indicates whether this world is still running. */
+    running = true;
+
 
     /**
      * Creates a new game world.
@@ -64,11 +67,15 @@ class World {
 
 
     /**
-     * Continuously updates and redraws the game world.
-     *
-     * @returns {void}
-     */
+    * Continuously updates and redraws the game world.
+    *
+    * @returns {void}
+    */
     draw() {
+        if (!this.running) {
+            return;
+        }
+
         this.clearCanvas();
         this.update();
         this.drawGameWorld();
@@ -232,5 +239,28 @@ class World {
         );
 
         gameOverScreen.classList.add('visible');
+    }
+
+    /**
+ * Stops the current game world and all running intervals.
+ *
+ * @returns {void}
+ */
+stop() {
+    this.running = false;
+    this.character.stopIntervals();
+    this.stopEnemyIntervals();
+}
+
+
+    /**
+    * Stops all intervals belonging to the enemies.
+    *
+    * @returns {void}
+    */
+    stopEnemyIntervals() {
+        this.enemies.forEach(enemy => {
+            enemy.stopIntervals();
+        });
     }
 }

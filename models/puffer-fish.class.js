@@ -20,16 +20,22 @@ class PufferFish extends MovableObject {
     swimImages = [];
 
     /** @type {number} Empty space above the collision area. */
-offsetTop = 10;
+    offsetTop = 10;
 
-/** @type {number} Empty space on the right side. */
-offsetRight = 10;
+    /** @type {number} Empty space on the right side. */
+    offsetRight = 10;
 
-/** @type {number} Empty space below the collision area. */
-offsetBottom = 10;
+    /** @type {number} Empty space below the collision area. */
+    offsetBottom = 10;
 
-/** @type {number} Empty space on the left side. */
-offsetLeft = 10;
+    /** @type {number} Empty space on the left side. */
+    offsetLeft = 10;
+
+    /** @type {number|null} ID of the movement interval. */
+    movementInterval = null;
+
+    /** @type {number|null} ID of the animation interval. */
+    animationInterval = null;
 
 
     /**
@@ -98,12 +104,12 @@ offsetLeft = 10;
 
 
     /**
-     * Continuously plays the swim animation.
-     *
-     * @returns {void}
-     */
+    * Starts the swimming animation of the enemy.
+    *
+    * @returns {void}
+    */
     startSwimAnimation() {
-        setInterval(() => {
+        this.animationInterval = setInterval(() => {
             this.playAnimation();
         }, 150);
     }
@@ -120,5 +126,13 @@ offsetLeft = 10;
         this.currentImage++;
     }
 
-    
+    /**
+    * Stops all running intervals of the enemy.
+    *
+    * @returns {void}
+    */
+    stopIntervals() {
+        clearInterval(this.movementInterval);
+        clearInterval(this.animationInterval);
+    }
 }
