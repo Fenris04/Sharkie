@@ -91,21 +91,31 @@ isColliding(object) {
 
 /**
  * Returns the left edge of the object's hitbox.
+ * Takes horizontal flipping into account.
  *
  * @returns {number} Left hitbox position.
  */
 getLeft() {
-    return this.x + this.offsetLeft;
+    const offset = this.otherDirection
+        ? this.offsetRight
+        : this.offsetLeft;
+
+    return this.x + offset;
 }
 
 
 /**
  * Returns the right edge of the object's hitbox.
+ * Takes horizontal flipping into account.
  *
  * @returns {number} Right hitbox position.
  */
 getRight() {
-    return this.x + this.width - this.offsetRight;
+    const offset = this.otherDirection
+        ? this.offsetLeft
+        : this.offsetRight;
+
+    return this.x + this.width - offset;
 }
 
 
