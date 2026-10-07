@@ -19,21 +19,6 @@ class Character extends MovableObject {
     /** @type {number} Index of the currently displayed animation frame. */
     currentImage = 0;
 
-    /** @type {HTMLImageElement[]} Images used for the idle animation. */
-    idleImages = [];
-
-    /** @type {HTMLImageElement[]} Images used for the swimming animation. */
-    swimImages = [];
-
-    /** @type {HTMLImageElement[]} Images used for the poisoned hurt animation. */
-    hurtImages = [];
-
-    /** @type {Object} Current keyboard input state. */
-    keyboard;
-
-    /** @type {World} Reference to the current game world. */
-    world;
-
     /** @type {number} Current amount of health. */
     energy = 100;
 
@@ -42,6 +27,27 @@ class Character extends MovableObject {
 
     /** @type {number} Time in milliseconds before Sharkie can be hit again. */
     hitCooldown = 1000;
+
+    /** @type {boolean} Indicates whether the death animation has finished. */
+    deathAnimationFinished = false;
+
+    /** @type {HTMLImageElement[]} Images used for the idle animation. */
+    idleImages = [];
+
+    /** @type {HTMLImageElement[]} Images used for the swimming animation. */
+    swimImages = [];
+
+    /** @type {HTMLImageElement[]} Images used for the hurt animation. */
+    hurtImages = [];
+
+    /** @type {HTMLImageElement[]} Images used for the death animation. */
+    deadImages = [];
+
+    /** @type {Object} Current keyboard input state. */
+    keyboard;
+
+    /** @type {World} Reference to the current game world. */
+    world;
 
     /** @type {number} Top offset of Sharkie's collision box. */
     offsetTop = 105;
@@ -57,7 +63,7 @@ class Character extends MovableObject {
 
 
     /**
-     * Creates Sharkie and loads all currently required animations.
+     * Creates Sharkie and loads all required animations.
      *
      * @param {Object} keyboard - Current keyboard input state.
      * @param {World} world - Current game world.
@@ -71,6 +77,8 @@ class Character extends MovableObject {
         this.loadIdleImages();
         this.loadSwimImages();
         this.loadHurtImages();
+        this.loadDeadImages();
+
         this.animate();
     }
 
@@ -104,15 +112,33 @@ class Character extends MovableObject {
 
 
     /**
-     * Loads all images used when Sharkie is poisoned by an enemy.
+     * Loads all images used when Sharkie is poisoned.
      *
      * @returns {void}
      */
     loadHurtImages() {
         for (let i = 1; i <= 5; i++) {
             const image = new Image();
-            image.src = `assets/1.Sharkie/5.Hurt/1.Poisoned/${i}.png`;
+            image.src =
+                `assets/1.Sharkie/5.Hurt/1.Poisoned/${i}.png`;
+
             this.hurtImages.push(image);
+        }
+    }
+
+
+    /**
+     * Loads all images used for Sharkie's poisoned death animation.
+     *
+     * @returns {void}
+     */
+    loadDeadImages() {
+        for (let i = 1; i <= 12; i++) {
+            const image = new Image();
+            image.src =
+                `assets/1.Sharkie/6.dead/1.Poisoned/${i}.png`;
+
+            this.deadImages.push(image);
         }
     }
 
@@ -130,12 +156,14 @@ class Character extends MovableObject {
 
 
     /**
-     * Selects the animation that matches Sharkie's current state.
+     * Selects the animation matching Sharkie's current state.
      *
      * @returns {void}
      */
     updateAnimation() {
-        if (this.isHurt()) {
+        if (this.isDead()) {
+            this.playDeathAnimation();
+        } else if (this.isHurt()) {
             this.playAnimation(this.hurtImages);
         } else if (this.isMoving()) {
             this.playAnimation(this.swimImages);
@@ -146,7 +174,7 @@ class Character extends MovableObject {
 
 
     /**
-     * Displays the next frame of an animation.
+     * Displays the next frame of a repeating animation.
      *
      * @param {HTMLImageElement[]} images - Animation frames to display.
      * @returns {void}
@@ -160,11 +188,48 @@ class Character extends MovableObject {
 
 
     /**
+     * Plays the death animation once and keeps its final frame visible.
+     *
+     * @returns {void}
+     */
+    playDeathAnimation() {
+        if (this.deathAnimationFinished) {
+            return;
+        }
+
+        if (this.currentImage < this.deadImages.length) {
+            this.img = this.deadImages[this.currentImage];
+            this.currentImage++;
+        } else {
+            this.finishDeathAnimation();
+        }
+    }
+
+
+    /**
+     * Finishes the death animation and keeps its last frame visible.
+     *
+     * @returns {void}
+     */
+    finishDeathAnimation() {
+        const lastImage = this.deadImages.length - 1;
+
+        this.img = this.deadImages[lastImage];
+        this.deathAnimationFinished = true;
+    }
+
+
+    /**
      * Moves Sharkie according to the current keyboard input.
+     * Movement is disabled after Sharkie dies.
      *
      * @returns {void}
      */
     move() {
+        if (this.isDead()) {
+            return;
+        }
+
         this.moveHorizontally();
         this.moveVertically();
     }
@@ -207,7 +272,7 @@ class Character extends MovableObject {
     /**
      * Checks whether a movement key is currently pressed.
      *
-     * @returns {boolean} True when Sharkie should use the swim animation.
+     * @returns {boolean} True when a movement key is pressed.
      */
     isMoving() {
         return this.keyboard.RIGHT ||
@@ -260,11 +325,11 @@ class Character extends MovableObject {
     /**
      * Reduces Sharkie's health when the hit cooldown has expired.
      *
-     * @param {number} damage - Amount of health that should be removed.
+     * @param {number} damage - Amount of health to remove.
      * @returns {void}
      */
     hit(damage) {
-        if (!this.canReceiveDamage()) {
+        if (!this.canReceiveDamage() || this.isDead()) {
             return;
         }
 
@@ -275,7 +340,7 @@ class Character extends MovableObject {
 
 
     /**
-     * Checks whether Sharkie is currently allowed to receive damage.
+     * Checks whether Sharkie can currently receive damage.
      *
      * @returns {boolean} True when another hit can be received.
      */
@@ -285,9 +350,9 @@ class Character extends MovableObject {
 
 
     /**
-     * Checks whether Sharkie is currently in the hurt state.
+     * Checks whether Sharkie is currently hurt.
      *
-     * @returns {boolean} True shortly after Sharkie has received damage.
+     * @returns {boolean} True shortly after receiving damage.
      */
     isHurt() {
         return Date.now() - this.lastHit < this.hitCooldown;
