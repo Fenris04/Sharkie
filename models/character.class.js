@@ -1,42 +1,39 @@
 /**
  * Represents the playable character Sharkie.
- * Handles Sharkie's position, size and animations.
  */
-class Character {
+class Character extends DrawableObject {
 
-    /** @type {number} Horizontal position of Sharkie on the canvas. */
+    /** @type {number} Horizontal start position of Sharkie. */
     x = 100;
 
-    /** @type {number} Vertical position of Sharkie on the canvas. */
+    /** @type {number} Vertical start position of Sharkie. */
     y = 100;
 
-    /** @type {number} Width of Sharkie in pixels. */
+    /** @type {number} Width of Sharkie. */
     width = 300;
 
-    /** @type {number} Height of Sharkie in pixels. */
+    /** @type {number} Height of Sharkie. */
     height = 250;
 
-    /** @type {HTMLImageElement} Currently displayed image of Sharkie. */
-    img = new Image();
-
-    /** @type {number} Index used to select the current animation frame. */
+    /** @type {number} Index of the current animation frame. */
     currentImage = 0;
 
-    /** @type {HTMLImageElement[]} Preloaded images for the idle animation. */
+    /** @type {HTMLImageElement[]} Images of the idle animation. */
     idleImages = [];
 
 
     /**
-     * Creates Sharkie and prepares the idle animation.
+     * Creates Sharkie and starts the idle animation.
      */
     constructor() {
+        super();
         this.loadIdleImages();
         this.animate();
     }
 
 
     /**
-     * Loads all images required for Sharkie's idle animation.
+     * Loads all frames of Sharkie's idle animation.
      *
      * @returns {void}
      */
@@ -50,7 +47,7 @@ class Character {
 
 
     /**
-     * Starts Sharkie's idle animation.
+     * Starts Sharkie's animation loop.
      *
      * @returns {void}
      */
@@ -62,7 +59,7 @@ class Character {
 
 
     /**
-     * Selects the next image of the idle animation.
+     * Displays the next frame of the idle animation.
      *
      * @returns {void}
      */
@@ -70,16 +67,5 @@ class Character {
         const index = this.currentImage % this.idleImages.length;
         this.img = this.idleImages[index];
         this.currentImage++;
-    }
-
-
-    /**
-     * Draws Sharkie onto the canvas.
-     *
-     * @param {CanvasRenderingContext2D} ctx - Canvas rendering context.
-     * @returns {void}
-     */
-    draw(ctx) {
-        ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
     }
 }
