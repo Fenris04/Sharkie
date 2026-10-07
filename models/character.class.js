@@ -1,6 +1,6 @@
 /**
  * Represents the playable character Sharkie.
- * Handles movement, animations, health and damage states.
+ * Handles movement, animations, attacks, health and damage states.
  */
 class Character extends MovableObject {
 
@@ -31,6 +31,12 @@ class Character extends MovableObject {
     /** @type {boolean} Indicates whether the death animation has finished. */
     deathAnimationFinished = false;
 
+    /** @type {boolean} Indicates whether Sharkie is performing a fin slap. */
+    isAttacking = false;
+
+    /** @type {boolean} Prevents repeated attacks while Space is held. */
+    attackKeyLocked = false;
+
     /** @type {HTMLImageElement[]} Images used for the idle animation. */
     idleImages = [];
 
@@ -43,11 +49,17 @@ class Character extends MovableObject {
     /** @type {HTMLImageElement[]} Images used for the death animation. */
     deadImages = [];
 
+    /** @type {HTMLImageElement[]} Images used for the fin-slap animation. */
+    attackImages = [];
+
     /** @type {Object} Current keyboard input state. */
     keyboard;
 
     /** @type {World} Reference to the current game world. */
     world;
+
+    /** @type {number|null} ID of Sharkie's animation interval. */
+    animationInterval = null;
 
     /** @type {number} Top offset of Sharkie's collision box. */
     offsetTop = 105;
@@ -60,9 +72,6 @@ class Character extends MovableObject {
 
     /** @type {number} Left offset of Sharkie's collision box. */
     offsetLeft = 65;
-
-    /** @type {number|null} ID of Sharkie's animation interval. */
-    animationInterval = null;
 
 
     /**
@@ -81,6 +90,7 @@ class Character extends MovableObject {
         this.loadSwimImages();
         this.loadHurtImages();
         this.loadDeadImages();
+        this.loadAttackImages();
 
         this.animate();
     }
@@ -122,9 +132,7 @@ class Character extends MovableObject {
     loadHurtImages() {
         for (let i = 1; i <= 5; i++) {
             const image = new Image();
-            image.src =
-                `assets/1.Sharkie/5.Hurt/1.Poisoned/${i}.png`;
-
+            image.src = `assets/1.Sharkie/5.Hurt/1.Poisoned/${i}.png`;
             this.hurtImages.push(image);
         }
     }
@@ -138,23 +146,79 @@ class Character extends MovableObject {
     loadDeadImages() {
         for (let i = 1; i <= 12; i++) {
             const image = new Image();
-            image.src =
-                `assets/1.Sharkie/6.dead/1.Poisoned/${i}.png`;
-
+            image.src = `assets/1.Sharkie/6.dead/1.Poisoned/${i}.png`;
             this.deadImages.push(image);
         }
     }
 
 
-   /**
-    * Starts Sharkie's animation loop.
-    *
-    * @returns {void}
-    */
+    /**
+     * Loads all images used for Sharkie's fin-slap attack.
+     *
+     * @returns {void}
+     */
+    loadAttackImages() {
+        for (let i = 1; i <= 8; i++) {
+            const image = new Image();
+            image.src = `assets/1.Sharkie/4.Attack/Fin slap/${i}.png`;
+            this.attackImages.push(image);
+        }
+    }
+
+
+    /**
+     * Starts Sharkie's animation loop.
+     *
+     * @returns {void}
+     */
     animate() {
         this.animationInterval = setInterval(() => {
+            this.updateAttackState();
             this.updateAnimation();
-        }, 150);
+        }, 100);
+    }
+
+
+    /**
+     * Starts an attack when Space is pressed once.
+     * Unlocks the attack after Space is released.
+     *
+     * @returns {void}
+     */
+    updateAttackState() {
+        if (!this.keyboard.SPACE) {
+            this.attackKeyLocked = false;
+            return;
+        }
+
+        if (this.canStartAttack()) {
+            this.startAttack();
+        }
+    }
+
+
+    /**
+     * Checks whether Sharkie can start a new fin-slap attack.
+     *
+     * @returns {boolean} True when a new attack can start.
+     */
+    canStartAttack() {
+        return !this.attackKeyLocked &&
+            !this.isAttacking &&
+            !this.isHurt() &&
+            !this.isDead();
+    }
+
+
+    /**
+     * Starts a new fin-slap attack.
+     *
+     * @returns {void}
+     */
+    startAttack() {
+        this.isAttacking = true;
+        this.attackKeyLocked = true;
+        this.currentImage = 0;
     }
 
 
@@ -168,6 +232,8 @@ class Character extends MovableObject {
             this.playDeathAnimation();
         } else if (this.isHurt()) {
             this.playAnimation(this.hurtImages);
+        } else if (this.isAttacking) {
+            this.playAttackAnimation();
         } else if (this.isMoving()) {
             this.playAnimation(this.swimImages);
         } else {
@@ -187,6 +253,33 @@ class Character extends MovableObject {
 
         this.img = images[index];
         this.currentImage++;
+    }
+
+
+    /**
+     * Plays the fin-slap animation exactly once.
+     *
+     * @returns {void}
+     */
+    playAttackAnimation() {
+        if (this.currentImage < this.attackImages.length) {
+            this.img = this.attackImages[this.currentImage];
+            this.currentImage++;
+            return;
+        }
+
+        this.finishAttack();
+    }
+
+
+    /**
+     * Finishes the current fin-slap attack.
+     *
+     * @returns {void}
+     */
+    finishAttack() {
+        this.isAttacking = false;
+        this.currentImage = 0;
     }
 
 
@@ -338,6 +431,7 @@ class Character extends MovableObject {
 
         this.energy = Math.max(0, this.energy - damage);
         this.lastHit = Date.now();
+        this.isAttacking = false;
         this.currentImage = 0;
     }
 
@@ -371,20 +465,22 @@ class Character extends MovableObject {
         return this.energy === 0;
     }
 
+
     /**
-    * Checks whether Sharkie's death animation has finished.
-    *
-    * @returns {boolean} True when Sharkie is dead and the animation is complete.
-    */
+     * Checks whether Sharkie's death animation has finished.
+     *
+     * @returns {boolean} True when Sharkie is dead and the animation is complete.
+     */
     isDeathAnimationFinished() {
         return this.isDead() && this.deathAnimationFinished;
     }
 
+
     /**
-    * Stops all running intervals of Sharkie.
-    *
-    * @returns {void}
-    */
+     * Stops all running intervals of Sharkie.
+     *
+     * @returns {void}
+     */
     stopIntervals() {
         clearInterval(this.animationInterval);
     }

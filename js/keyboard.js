@@ -1,18 +1,19 @@
 /**
- * Stores the current state of the keyboard controls.
+ * Stores the current keyboard controls.
  */
 const keyboard = {
     RIGHT: false,
     LEFT: false,
     UP: false,
-    DOWN: false
+    DOWN: false,
+    SPACE: false
 };
 
 
 /**
- * Marks a control as active when its key is pressed.
+ * Activates the matching control when a key is pressed.
  *
- * @param {KeyboardEvent} event - The triggered keyboard event.
+ * @param {KeyboardEvent} event - Current keyboard event.
  * @returns {void}
  */
 function handleKeyDown(event) {
@@ -20,13 +21,14 @@ function handleKeyDown(event) {
     if (event.key === 'ArrowLeft') keyboard.LEFT = true;
     if (event.key === 'ArrowUp') keyboard.UP = true;
     if (event.key === 'ArrowDown') keyboard.DOWN = true;
+    if (event.code === 'Space') keyboard.SPACE = true;
 }
 
 
 /**
- * Marks a control as inactive when its key is released.
+ * Deactivates the matching control when a key is released.
  *
- * @param {KeyboardEvent} event - The triggered keyboard event.
+ * @param {KeyboardEvent} event - Current keyboard event.
  * @returns {void}
  */
 function handleKeyUp(event) {
@@ -34,6 +36,7 @@ function handleKeyUp(event) {
     if (event.key === 'ArrowLeft') keyboard.LEFT = false;
     if (event.key === 'ArrowUp') keyboard.UP = false;
     if (event.key === 'ArrowDown') keyboard.DOWN = false;
+    if (event.code === 'Space') keyboard.SPACE = false;
 }
 
 
