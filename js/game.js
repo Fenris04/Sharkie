@@ -45,8 +45,8 @@ init();
  * @returns {void}
  */
 function moveCharacter() {
-    if (keyboard.RIGHT) character.moveRight();
-    if (keyboard.LEFT) character.moveLeft();
-    if (keyboard.UP) character.moveUp();
-    if (keyboard.DOWN) character.moveDown();
+    if (keyboard.RIGHT && character.canMoveRight()) character.moveRight();
+    if (keyboard.LEFT && character.canMoveLeft()) character.moveLeft();
+    if (keyboard.UP && character.canMoveUp()) character.moveUp();
+    if (keyboard.DOWN && character.canMoveDown()) character.moveDown();
 }

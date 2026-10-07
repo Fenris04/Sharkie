@@ -68,4 +68,44 @@ class Character extends MovableObject {
         this.img = this.idleImages[index];
         this.currentImage++;
     }
+
+    /**
+    * Checks whether Sharkie can move to the right.
+     *
+    * @returns {boolean} True if Sharkie is inside the right boundary.
+    */
+    canMoveRight() {
+        return this.x + this.width < 720;
+    }
+
+
+    /**
+    * Checks whether Sharkie can move to the left.
+     *
+    * @returns {boolean} True if Sharkie is inside the left boundary.
+    */
+    canMoveLeft() {
+        return this.x > 0;
+    }
+
+
+    /**
+    * Checks whether Sharkie can move upwards.
+     *
+    * @returns {boolean} True if Sharkie is inside the upper boundary.
+    * /
+    canMoveUp() {
+        return this.y > 0;
+    }
+
+
+    /**
+    * Checks whether Sharkie can move downwards.
+    *
+    * @returns {boolean} True if Sharkie is inside the lower boundary.
+    */
+    canMoveDown() {
+      return this.y + this.height < 480;
+    }
 }
+
