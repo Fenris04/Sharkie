@@ -484,4 +484,53 @@ class Character extends MovableObject {
     stopIntervals() {
         clearInterval(this.animationInterval);
     }
+
+    /**
+    * Returns the collision area of Sharkie's fin-slap attack.
+    *
+    * @returns {{x: number, y: number, width: number, height: number}}
+    * Attack collision area.
+    */
+    getAttackHitbox() {
+        const width = 80;
+        const height = 90;
+
+        return {
+            x: this.getAttackHitboxX(width),
+            y: this.y + 95,
+            width: width,
+            height: height
+        };
+    }
+
+
+    /**
+    * Calculates the horizontal position of the attack hitbox.
+    *
+    * @param {number} width - Width of the attack hitbox.
+    * @returns {number} Horizontal attack position.
+    */
+    getAttackHitboxX(width) {
+        if (this.otherDirection) {
+            return this.getLeft() - width;
+        }
+
+        return this.getRight();
+    }
+
+
+    /**
+    * Checks whether the fin slap is currently in its active hit phase.
+    *
+    * @returns {boolean} True when the attack can damage an enemy.
+    */
+    canAttackEnemy() {
+        const firstHitFrame = 4;
+        const lastHitFrame = 6;
+
+        return this.isAttacking &&
+            this.currentImage >= firstHitFrame &&
+            this.currentImage <= lastHitFrame;
+    }
+
 }

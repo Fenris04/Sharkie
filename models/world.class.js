@@ -85,13 +85,15 @@ class World {
 
 
     /**
-     * Updates all game logic before the next frame is drawn.
-     *
-     * @returns {void}
-     */
+    * Updates all game logic before the next frame is drawn.
+    *
+    * @returns {void}
+    */
     update() {
         this.character.move();
         this.checkCollisions();
+        this.checkAttackCollisions();
+        this.removeDefeatedEnemies();
         this.updateCamera();
         this.checkGameOver();
     }
@@ -170,16 +172,28 @@ class World {
 
 
     /**
-     * Checks collisions between Sharkie and all enemies.
-     *
-     * @returns {void}
-     */
+    * Checks collisions between Sharkie and living enemies.
+    *
+    * @returns {void}
+    */
     checkCollisions() {
         this.enemies.forEach(enemy => {
-            if (this.character.isColliding(enemy)) {
+            if (this.canEnemyDamageCharacter(enemy)) {
                 this.damageCharacter();
             }
         });
+    }
+
+
+    /**
+    * Checks whether an enemy can currently damage Sharkie.
+    *
+    * @param {PufferFish} enemy - Enemy that should be checked.
+    * @returns {boolean} True when the enemy touches Sharkie.
+    */
+    canEnemyDamageCharacter(enemy) {
+        return !enemy.isDead() &&
+            this.character.isColliding(enemy);
     }
 
 
@@ -261,6 +275,55 @@ stop() {
     stopEnemyIntervals() {
         this.enemies.forEach(enemy => {
             enemy.stopIntervals();
+        });
+    }
+
+    /**
+ * Checks whether Sharkie's fin slap hits an enemy.
+ *
+ * @returns {void}
+ */
+checkAttackCollisions() {
+    if (!this.character.canAttackEnemy()) {
+        return;
+    }
+
+    this.enemies.forEach(enemy => {
+        if (this.isAttackHittingEnemy(enemy)) {
+            enemy.die();
+        }
+    });
+}
+
+
+    /**
+    * Checks whether the attack hitbox overlaps an enemy.
+    *
+    * @param {PufferFish} enemy - Enemy that should be checked.
+    * @returns {boolean} True when the fin slap hits the enemy.
+    */
+    isAttackHittingEnemy(enemy) {
+        if (enemy.isDead()) {
+            return false;
+        }
+
+        const attack = this.character.getAttackHitbox();
+
+        return attack.x < enemy.getRight() &&
+            attack.x + attack.width > enemy.getLeft() &&
+            attack.y < enemy.getBottom() &&
+            attack.y + attack.height > enemy.getTop();
+    }
+
+
+    /**
+    * Removes defeated enemies after they leave the canvas.
+    *
+    * @returns {void}
+    */
+    removeDefeatedEnemies() {
+        this.enemies = this.enemies.filter(enemy => {
+            return !enemy.isDead() || enemy.y < 480;
         });
     }
 }
