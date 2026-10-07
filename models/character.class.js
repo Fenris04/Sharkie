@@ -28,6 +28,7 @@ class Character extends MovableObject {
     constructor() {
         super();
         this.loadIdleImages();
+        this.loadSwimImages();
         this.animate();
     }
 
@@ -45,28 +46,46 @@ class Character extends MovableObject {
         }
     }
 
-
     /**
-     * Starts Sharkie's animation loop.
-     *
+    * Loads all frames of Sharkie's swim animation.
+    *
      * @returns {void}
      */
+    loadSwimImages() {
+        for (let i = 1; i <= 6; i++) {
+            const image = new Image();
+           image.src = `assets/1.Sharkie/3.Swim/${i}.png`;
+         this.swimImages.push(image);
+        }
+    }
+
+
+    /**
+    * Starts Sharkie's animation loop.
+     *
+     * @returns {void}
+    */
     animate() {
-        setInterval(() => {
-            this.playIdleAnimation();
+     setInterval(() => {
+            if (this.isMoving()) {
+                this.playAnimation(this.swimImages);
+         } else {
+              this.playAnimation(this.idleImages);
+          }
         }, 150);
     }
 
 
     /**
-     * Displays the next frame of the idle animation.
-     *
-     * @returns {void}
-     */
-    playIdleAnimation() {
-        const index = this.currentImage % this.idleImages.length;
-        this.img = this.idleImages[index];
-        this.currentImage++;
+    * Plays an animation using the provided image sequence.
+    *
+    * @param {HTMLImageElement[]} images - Images of the animation.
+    * @returns {void}
+    */
+    playAnimation(images) {
+     const index = this.currentImage % images.length;
+     this.img = images[index];
+     this.currentImage++;
     }
 
     /**
@@ -93,7 +112,7 @@ class Character extends MovableObject {
     * Checks whether Sharkie can move upwards.
      *
     * @returns {boolean} True if Sharkie is inside the upper boundary.
-    * /
+    */
     canMoveUp() {
         return this.y > 0;
     }
@@ -107,5 +126,20 @@ class Character extends MovableObject {
     canMoveDown() {
       return this.y + this.height < 480;
     }
+
+    /** @type {HTMLImageElement[]} Images used for the swim animation. */
+    swimImages = [];
+
+    /**
+    * Checks whether Sharkie is currently moving.
+    *
+    * @returns {boolean} True if a movement key is pressed.
+    */
+    isMoving() {
+        return keyboard.RIGHT ||
+            keyboard.LEFT ||
+            keyboard.UP ||
+            keyboard.DOWN;
+    }    
 }
 
