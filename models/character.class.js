@@ -1,29 +1,32 @@
 /**
  * Represents the playable character Sharkie.
- * Handles Sharkie's movement and animations.
+ * Handles movement, animations, health and damage states.
  */
 class Character extends MovableObject {
 
-    /** @type {number} Horizontal start position of Sharkie. */
+    /** @type {number} Horizontal position of Sharkie. */
     x = 100;
 
-    /** @type {number} Vertical start position of Sharkie. */
+    /** @type {number} Vertical position of Sharkie. */
     y = 100;
 
-    /** @type {number} Width of Sharkie in pixels. */
+    /** @type {number} Width of Sharkie. */
     width = 300;
 
-    /** @type {number} Height of Sharkie in pixels. */
+    /** @type {number} Height of Sharkie. */
     height = 250;
 
-    /** @type {number} Index of the current animation frame. */
+    /** @type {number} Index of the currently displayed animation frame. */
     currentImage = 0;
 
     /** @type {HTMLImageElement[]} Images used for the idle animation. */
     idleImages = [];
 
-    /** @type {HTMLImageElement[]} Images used for the swim animation. */
+    /** @type {HTMLImageElement[]} Images used for the swimming animation. */
     swimImages = [];
+
+    /** @type {HTMLImageElement[]} Images used for the poisoned hurt animation. */
+    hurtImages = [];
 
     /** @type {Object} Current keyboard input state. */
     keyboard;
@@ -31,33 +34,34 @@ class Character extends MovableObject {
     /** @type {World} Reference to the current game world. */
     world;
 
-    /** @type {number} Empty space above Sharkie's collision area. */
-    offsetTop = 105;
-
-    /** @type {number} Empty space on Sharkie's right side. */
-    offsetRight = 55;
-
-    /** @type {number} Empty space below Sharkie's collision area. */
-    offsetBottom = 70;
-
-    /** @type {number} Empty space on Sharkie's left side. */
-    offsetLeft = 65;
-
-    /** @type {number} Current health of Sharkie in percent. */
+    /** @type {number} Current amount of health. */
     energy = 100;
 
-    /** @type {number} Timestamp of the last received hit. */
+    /** @type {number} Time of the last successful hit. */
     lastHit = 0;
 
-    /** @type {number} Time in milliseconds Sharkie is protected after a hit. */
+    /** @type {number} Time in milliseconds before Sharkie can be hit again. */
     hitCooldown = 1000;
 
+    /** @type {number} Top offset of Sharkie's collision box. */
+    offsetTop = 105;
+
+    /** @type {number} Right offset of Sharkie's collision box. */
+    offsetRight = 55;
+
+    /** @type {number} Bottom offset of Sharkie's collision box. */
+    offsetBottom = 70;
+
+    /** @type {number} Left offset of Sharkie's collision box. */
+    offsetLeft = 65;
+
+
     /**
-    * Creates Sharkie and prepares his animations and controls.
-    *
-    * @param {Object} keyboard - Current keyboard input state.
-    * @param {World} world - Current game world.
-    */
+     * Creates Sharkie and loads all currently required animations.
+     *
+     * @param {Object} keyboard - Current keyboard input state.
+     * @param {World} world - Current game world.
+     */
     constructor(keyboard, world) {
         super();
 
@@ -66,12 +70,13 @@ class Character extends MovableObject {
 
         this.loadIdleImages();
         this.loadSwimImages();
+        this.loadHurtImages();
         this.animate();
     }
 
 
     /**
-     * Loads all frames of Sharkie's idle animation.
+     * Loads all images used for Sharkie's idle animation.
      *
      * @returns {void}
      */
@@ -85,7 +90,7 @@ class Character extends MovableObject {
 
 
     /**
-     * Loads all frames of Sharkie's swim animation.
+     * Loads all images used for Sharkie's swimming animation.
      *
      * @returns {void}
      */
@@ -99,36 +104,63 @@ class Character extends MovableObject {
 
 
     /**
+     * Loads all images used when Sharkie is poisoned by an enemy.
+     *
+     * @returns {void}
+     */
+    loadHurtImages() {
+        for (let i = 1; i <= 5; i++) {
+            const image = new Image();
+            image.src = `assets/1.Sharkie/5.Hurt/1.Poisoned/${i}.png`;
+            this.hurtImages.push(image);
+        }
+    }
+
+
+    /**
      * Starts Sharkie's animation loop.
      *
      * @returns {void}
      */
     animate() {
         setInterval(() => {
-            if (this.isMoving()) {
-                this.playAnimation(this.swimImages);
-            } else {
-                this.playAnimation(this.idleImages);
-            }
+            this.updateAnimation();
         }, 150);
     }
 
 
     /**
-     * Plays an animation using the provided image sequence.
+     * Selects the animation that matches Sharkie's current state.
      *
-     * @param {HTMLImageElement[]} images - Images of the animation.
+     * @returns {void}
+     */
+    updateAnimation() {
+        if (this.isHurt()) {
+            this.playAnimation(this.hurtImages);
+        } else if (this.isMoving()) {
+            this.playAnimation(this.swimImages);
+        } else {
+            this.playAnimation(this.idleImages);
+        }
+    }
+
+
+    /**
+     * Displays the next frame of an animation.
+     *
+     * @param {HTMLImageElement[]} images - Animation frames to display.
      * @returns {void}
      */
     playAnimation(images) {
         const index = this.currentImage % images.length;
+
         this.img = images[index];
         this.currentImage++;
     }
 
 
     /**
-     * Updates Sharkie's position according to the keyboard input.
+     * Moves Sharkie according to the current keyboard input.
      *
      * @returns {void}
      */
@@ -137,11 +169,12 @@ class Character extends MovableObject {
         this.moveVertically();
     }
 
+
     /**
-    * Moves Sharkie horizontally and updates his facing direction.
+     * Handles horizontal movement and direction.
      *
-    * @returns {void}
-    */
+     * @returns {void}
+     */
     moveHorizontally() {
         if (this.keyboard.RIGHT && this.canMoveRight()) {
             this.moveRight();
@@ -155,22 +188,26 @@ class Character extends MovableObject {
     }
 
 
+    /**
+     * Handles vertical movement.
+     *
+     * @returns {void}
+     */
+    moveVertically() {
+        if (this.keyboard.UP && this.canMoveUp()) {
+            this.moveUp();
+        }
 
-/**
- * Moves Sharkie vertically.
- *
- * @returns {void}
- */
-moveVertically() {
-    if (this.keyboard.UP && this.canMoveUp()) this.moveUp();
-    if (this.keyboard.DOWN && this.canMoveDown()) this.moveDown();
-}
+        if (this.keyboard.DOWN && this.canMoveDown()) {
+            this.moveDown();
+        }
+    }
 
 
     /**
-     * Checks whether Sharkie is currently being moved.
+     * Checks whether a movement key is currently pressed.
      *
-     * @returns {boolean} True if a movement key is pressed.
+     * @returns {boolean} True when Sharkie should use the swim animation.
      */
     isMoving() {
         return this.keyboard.RIGHT ||
@@ -181,18 +218,19 @@ moveVertically() {
 
 
     /**
-    * Checks whether Sharkie can move further to the right.
-    *
-    * @returns {boolean} True if Sharkie has not reached the level end.
-    */
+     * Checks whether Sharkie can move farther to the right.
+     *
+     * @returns {boolean} True when movement is possible.
+     */
     canMoveRight() {
         return this.x + this.width < this.world.levelWidth;
     }
 
+
     /**
-     * Checks whether Sharkie can move further to the left.
+     * Checks whether Sharkie can move farther to the left.
      *
-     * @returns {boolean} True if Sharkie has not reached the level start.
+     * @returns {boolean} True when movement is possible.
      */
     canMoveLeft() {
         return this.x > 0;
@@ -200,9 +238,9 @@ moveVertically() {
 
 
     /**
-     * Checks whether Sharkie can move upwards.
+     * Checks whether Sharkie can move farther upward.
      *
-     * @returns {boolean} True if Sharkie is inside the upper boundary.
+     * @returns {boolean} True when movement is possible.
      */
     canMoveUp() {
         return this.y > 0;
@@ -210,45 +248,58 @@ moveVertically() {
 
 
     /**
-     * Checks whether Sharkie can move downwards.
+     * Checks whether Sharkie can move farther downward.
      *
-     * @returns {boolean} True if Sharkie is inside the lower boundary.
+     * @returns {boolean} True when movement is possible.
      */
     canMoveDown() {
         return this.y + this.height < 480;
     }
 
+
     /**
-    * Reduces Sharkie's energy when he receives damage.
-    *
-    * @param {number} damage - Amount of energy to remove.
-    * @returns {void}
-    */
+     * Reduces Sharkie's health when the hit cooldown has expired.
+     *
+     * @param {number} damage - Amount of health that should be removed.
+     * @returns {void}
+     */
     hit(damage) {
-        if (!this.canReceiveDamage()) return;
+        if (!this.canReceiveDamage()) {
+            return;
+        }
 
         this.energy = Math.max(0, this.energy - damage);
         this.lastHit = Date.now();
+        this.currentImage = 0;
     }
 
 
     /**
-    * Checks whether Sharkie can currently receive damage.
-    *
-    * @returns {boolean} True if the hit cooldown has expired.
-    */
+     * Checks whether Sharkie is currently allowed to receive damage.
+     *
+     * @returns {boolean} True when another hit can be received.
+     */
     canReceiveDamage() {
         return Date.now() - this.lastHit > this.hitCooldown;
     }
 
 
     /**
-    * Checks whether Sharkie has no energy left.
-    *
-    * @returns {boolean} True if Sharkie is dead.
-    */
+     * Checks whether Sharkie is currently in the hurt state.
+     *
+     * @returns {boolean} True shortly after Sharkie has received damage.
+     */
+    isHurt() {
+        return Date.now() - this.lastHit < this.hitCooldown;
+    }
+
+
+    /**
+     * Checks whether Sharkie has no health remaining.
+     *
+     * @returns {boolean} True when Sharkie is dead.
+     */
     isDead() {
         return this.energy === 0;
     }
-
 }
