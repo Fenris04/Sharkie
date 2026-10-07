@@ -31,6 +31,17 @@ class Character extends MovableObject {
     /** @type {World} Reference to the current game world. */
     world;
 
+    /** @type {number} Empty space above Sharkie's collision area. */
+    offsetTop = 105;
+
+    /** @type {number} Empty space on Sharkie's right side. */
+    offsetRight = 55;
+
+    /** @type {number} Empty space below Sharkie's collision area. */
+    offsetBottom = 70;
+
+    /** @type {number} Empty space on Sharkie's left side. */
+    offsetLeft = 65;
 
     /**
     * Creates Sharkie and prepares his animations and controls.

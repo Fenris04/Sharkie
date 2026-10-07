@@ -62,23 +62,37 @@ class World {
     }
 
 
-    /**
-    * Draws all objects that belong to the game world.
-    *
-    * @returns {void}
-    */
-    drawGameWorld() {
-        this.ctx.save();
-        this.ctx.translate(this.cameraX, 0);
+ /**
+ * Draws all objects that belong to the game world.
+ *
+ * @returns {void}
+ */
+drawGameWorld() {
+    this.ctx.save();
+    this.ctx.translate(this.cameraX, 0);
 
-        this.addObjectsToMap(this.backgrounds);
-        this.addObjectsToMap(this.enemies);
+    this.addObjectsToMap(this.backgrounds);
+    this.addObjectsToMap(this.enemies);
+    this.character.move();
+    this.character.draw(this.ctx);
+    this.drawHitboxes();
 
-        this.character.move();
-        this.character.draw(this.ctx);
+    this.ctx.restore();
+}
 
-        this.ctx.restore();
-    }
+/**
+ * Draws hitboxes of relevant game objects for development.
+ *
+ * @returns {void}
+ */
+drawHitboxes() {
+    this.character.drawHitbox(this.ctx);
+
+    this.enemies.forEach(enemy => {
+        enemy.drawHitbox(this.ctx);
+    });
+}
+
 
 
     /**

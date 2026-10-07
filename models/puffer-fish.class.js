@@ -19,6 +19,18 @@ class PufferFish extends MovableObject {
     /** @type {HTMLImageElement[]} Images used for the swim animation. */
     swimImages = [];
 
+    /** @type {number} Empty space above the collision area. */
+offsetTop = 10;
+
+/** @type {number} Empty space on the right side. */
+offsetRight = 10;
+
+/** @type {number} Empty space below the collision area. */
+offsetBottom = 10;
+
+/** @type {number} Empty space on the left side. */
+offsetLeft = 10;
+
 
     /**
      * Creates a new puffer fish at the given position.
@@ -107,4 +119,6 @@ class PufferFish extends MovableObject {
         this.img = this.swimImages[index];
         this.currentImage++;
     }
+
+    
 }
