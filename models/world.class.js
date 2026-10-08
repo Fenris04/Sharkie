@@ -57,6 +57,8 @@ class World {
     /** @type {boolean} Indicates whether this world is still running. */
     running = true;
 
+    /** @type {Bubble[]} Active bubble projectiles. */
+    bubbles = [];
 
     /**
      * Creates a new game world.
@@ -97,10 +99,13 @@ class World {
     */
     update() {
         this.character.move();
+        this.updateBubbles();
         this.checkCollisions();
         this.checkJellyfishCollisions();
         this.checkAttackCollisions();
+        this.checkBubbleCollisions();
         this.removeDefeatedEnemies();
+        this.removeDefeatedJellyfish();
         this.updateCamera();
         this.checkGameOver();
     }
@@ -147,6 +152,7 @@ class World {
         this.addObjectsToMap(this.backgrounds);
         this.addObjectsToMap(this.enemies);
         this.addObjectsToMap(this.jellyfish);
+        this.addObjectsToMap(this.bubbles);
 
         this.character.draw(this.ctx);
         this.drawHitboxes();
@@ -355,19 +361,65 @@ checkAttackCollisions() {
         });
     }
 
-    /**
-    * Checks whether Sharkie collides with a jellyfish.
-    *
-    * @returns {void}
-    */
+   /**
+ * Checks collisions between Sharkie and living jellyfish.
+ *
+ * @returns {void}
+ */
     checkJellyfishCollisions() {
         this.jellyfish.forEach(jellyfish => {
-            if (this.character.isColliding(jellyfish)) {
-                this.damageCharacter(20, 'electric');
+            if (!jellyfish.isDead() &&
+             this.character.isColliding(jellyfish)) {
+             this.damageCharacter(20, 'electric');
             }
         });
     }
  
-    
+    /**
+    * Moves all active bubbles and removes those outside the level.
+    *
+    * @returns {void}
+    */
+    updateBubbles() {
+        this.bubbles.forEach(bubble => bubble.move());
+
+        this.bubbles = this.bubbles.filter(bubble =>
+        !bubble.hasHit &&
+            bubble.x + bubble.width > 0 &&
+            bubble.x < this.levelWidth
+        );
+    }
+
+    /**
+     * Checks whether bubbles collide with jellyfish.
+     *
+     * @returns {void}
+     */
+    checkBubbleCollisions() {
+        this.bubbles.forEach(bubble => {
+            this.jellyfish.forEach(jellyfish => {
+                if (bubble.hasHit || jellyfish.isDead()) return;
+
+                if (bubble.isColliding(jellyfish)) {
+                    bubble.hasHit = true;
+                    jellyfish.die();
+                }
+            });
+        });
+    }
+
+    /**
+    * Removes jellyfish only after their death animation finishes.
+    *
+    * @returns {void}
+    */
+    removeDefeatedJellyfish() {
+        this.jellyfish = this.jellyfish.filter(jellyfish => {
+            if (!jellyfish.isDeathAnimationFinished()) return true;
+
+            jellyfish.stopIntervals();
+            return false;
+        });
+    }
 
 }

@@ -6,7 +6,8 @@ const keyboard = {
     LEFT: false,
     UP: false,
     DOWN: false,
-    SPACE: false
+    SPACE: false,
+    A: false
 };
 
 
@@ -22,6 +23,15 @@ function handleKeyDown(event) {
     if (event.key === 'ArrowUp') keyboard.UP = true;
     if (event.key === 'ArrowDown') keyboard.DOWN = true;
     if (event.code === 'Space') keyboard.SPACE = true;
+    if (event.code === 'KeyA') keyboard.A = true;
+
+    /**
+    * Prevents page scrolling when a game control is pressed.
+    */
+    if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']
+        .includes(event.code)) {
+        event.preventDefault();
+    }
 }
 
 
@@ -37,6 +47,7 @@ function handleKeyUp(event) {
     if (event.key === 'ArrowUp') keyboard.UP = false;
     if (event.key === 'ArrowDown') keyboard.DOWN = false;
     if (event.code === 'Space') keyboard.SPACE = false;
+    if (event.code === 'KeyA') keyboard.A = false;
 }
 
 

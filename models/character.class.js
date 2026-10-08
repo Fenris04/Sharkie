@@ -82,6 +82,18 @@ class Character extends MovableObject {
     /** @type {HTMLImageElement[]} Images used for electric-shock death. */
     electricDeadImages = [];
 
+    /** @type {HTMLImageElement[]} Images used for the bubble attack. */
+    bubbleAttackImages = [];
+
+    /** @type {boolean} Indicates whether Sharkie is performing a bubble attack. */
+    isBubbleAttacking = false;
+
+    /** @type {boolean} Prevents repeated bubble attacks while A is held. */
+    bubbleKeyLocked = false;
+
+    /** @type {number} Current frame of the bubble attack. */
+    bubbleImageIndex = 0;
+
     /**
      * Creates Sharkie and loads all required animations.
      *
@@ -101,6 +113,7 @@ class Character extends MovableObject {
         this.loadDeadImages();
         this.loadElectricDeadImages();
         this.loadAttackImages();
+        this.loadBubbleAttackImages();
 
         this.animate();
     }
@@ -184,6 +197,7 @@ class Character extends MovableObject {
     animate() {
         this.animationInterval = setInterval(() => {
             this.updateAttackState();
+            this.updateBubbleAttackState();
             this.updateAnimation();
         }, 100);
     }
@@ -215,6 +229,7 @@ class Character extends MovableObject {
     canStartAttack() {
         return !this.attackKeyLocked &&
             !this.isAttacking &&
+            !this.isBubbleAttacking &&
             !this.isHurt() &&
             !this.isDead();
     }
@@ -244,6 +259,8 @@ class Character extends MovableObject {
             this.playHurtAnimation();
         } else if (this.isAttacking) {
             this.playAttackAnimation();
+        } else if (this.isBubbleAttacking) {
+            this.playBubbleAttackAnimation();
         } else if (this.isMoving()) {
             this.playAnimation(this.swimImages);
         } else {
@@ -448,6 +465,7 @@ class Character extends MovableObject {
         this.damageType = type;
         this.lastHit = Date.now();
         this.isAttacking = false;
+        this.isBubbleAttacking = false;
         this.currentImage = 0;
     }
 
@@ -604,5 +622,117 @@ class Character extends MovableObject {
         }
 
         return this.deadImages;
+    }
+
+    /**
+    * Loads all frames used for Sharkie's bubble attack.
+    *
+    * @returns {void}
+    */
+    loadBubbleAttackImages() {
+        for (let i = 1; i <= 8; i++) {
+            const image = new Image();
+
+            image.src =
+                `assets/1.Sharkie/4.Attack/Bubble trap/` +
+                `op1 (with bubble formation)/${i}.png`;
+
+            this.bubbleAttackImages.push(image);
+        }
+    }
+
+    /**
+    * Checks the bubble attack input and starts an attack if possible.
+    *
+    * @returns {void}
+    */
+    updateBubbleAttackState() {
+        if (!this.keyboard.A) {
+            this.bubbleKeyLocked = false;
+            return;
+        }
+
+        if (this.canStartBubbleAttack()) {
+            this.startBubbleAttack();
+        }
+    }
+
+
+    /**
+    * Checks whether Sharkie can perform a bubble attack.
+    *
+    * @returns {boolean} True when a bubble attack can start.
+    */
+    canStartBubbleAttack() {
+        return !this.bubbleKeyLocked &&
+            !this.isBubbleAttacking &&
+            !this.isAttacking &&
+            !this.isHurt() &&
+            !this.isDead();
+    }
+
+
+    /**
+    * Starts a new bubble attack.
+    *
+    * @returns {void}
+    */
+    startBubbleAttack() {
+        this.isBubbleAttacking = true;
+        this.bubbleKeyLocked = true;
+        this.bubbleImageIndex = 0;
+    }
+
+    /**
+    * Plays the bubble attack and fires one projectile.
+    *
+    * @returns {void}
+    */
+    playBubbleAttackAnimation() {
+        if (this.bubbleImageIndex >= this.bubbleAttackImages.length) {
+            this.finishBubbleAttack();
+            return;
+        }
+
+        this.img = this.bubbleAttackImages[this.bubbleImageIndex];
+
+        if (this.bubbleImageIndex === 5) {
+            this.shootBubble();
+        }
+
+        this.bubbleImageIndex++;
+    }
+
+
+    /**
+    * Finishes the current bubble attack.
+    *
+    * @returns {void}
+    */
+    finishBubbleAttack() {
+        this.isBubbleAttacking = false;
+        this.bubbleImageIndex = 0;
+        this.currentImage = 0;
+    }
+
+    /**
+    * Creates a bubble projectile in front of Sharkie.
+    *
+    * @returns {void}
+    */
+    shootBubble() {
+        const bubbleX = this.otherDirection
+            ? this.x + 35
+            : this.x + this.width - 95;
+
+        const bubbleY = this.y + 110;
+
+        const bubble = new Bubble(
+            bubbleX,
+            bubbleY,
+            this.otherDirection
+        );
+
+        this.world.bubbles.push(bubble);
     }
 }
