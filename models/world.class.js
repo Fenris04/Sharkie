@@ -93,6 +93,9 @@ class World {
         new PoisonBottle(7900, 180)
     ];
 
+    /** @type {PoisonStatusBar} Bubble ammunition status bar. */
+    poisonStatusBar = new PoisonStatusBar();    
+
     /**
      * Creates a new game world.
      *
@@ -167,7 +170,8 @@ class World {
         this.statusBar.draw(this.ctx);
         this.coinStatusBar.draw(this.ctx);
         this.drawCoinCounter();
-        this.drawPoisonCounter();
+        this.updatePoisonStatusBar();
+        this.poisonStatusBar.draw(this.ctx);
     }
 
     /**
@@ -533,22 +537,33 @@ class World {
     }
 
     /**
-    * Checks collisions between Sharkie and poison bottles.
+    * Collects poison bottles only when Sharkie needs ammunition.
     *
     * @returns {void}
     */
     checkPoisonBottleCollisions() {
         this.poisonBottles.forEach(bottle => {
-            if (!bottle.collected &&
-                !this.character.isDead() &&
-                this.character.isColliding(bottle)) {
+            if (this.canCollectPoisonBottle(bottle)) {
                 this.collectPoisonBottle(bottle);
-           }
-     });
+            }
+        });
 
         this.poisonBottles = this.poisonBottles.filter(
             bottle => !bottle.collected
         );
+    }
+
+    /**
+    * Checks whether Sharkie can collect a poison bottle.
+    *
+    * @param {PoisonBottle} bottle - Bottle to check.
+    * @returns {boolean} True when the bottle can be collected.
+    */
+    canCollectPoisonBottle(bottle) {
+        return !bottle.collected &&
+            !this.character.isDead() &&
+            this.character.poison < this.character.maxPoison &&
+            this.character.isColliding(bottle);
     }
 
     /**
@@ -574,5 +589,17 @@ class World {
     */
     stopPoisonBottleIntervals() {
         this.poisonBottles.forEach(bottle => bottle.stopIntervals());
+    }
+
+    /**
+    * Synchronizes the poison bar with Sharkie's ammunition.
+    *
+    * @returns {void}
+    */
+    updatePoisonStatusBar() {
+        const percentage =
+            (this.character.poison / this.character.maxPoison) * 100;
+
+        this.poisonStatusBar.setPercentage(percentage);
     }
 }
