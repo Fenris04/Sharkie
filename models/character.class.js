@@ -100,6 +100,9 @@ class Character extends MovableObject {
     /** @type {number} Maximum bubble ammunition. */
     maxPoison = 5;
 
+    /** @type {boolean} Whether player controls are temporarily disabled. */
+    controlsLocked = false;
+
     /**
      * Creates Sharkie and loads all required animations.
      *
@@ -233,7 +236,8 @@ class Character extends MovableObject {
      * @returns {boolean} True when a new attack can start.
      */
     canStartAttack() {
-        return !this.attackKeyLocked &&
+        return !this.controlsLocked &&
+            !this.attackKeyLocked &&
             !this.isAttacking &&
             !this.isBubbleAttacking &&
             !this.isHurt() &&
@@ -359,12 +363,12 @@ class Character extends MovableObject {
      * @returns {void}
      */
     move() {
-        if (this.isDead()) {
-            return;
-        }
+    if (this.isDead() || this.controlsLocked) {
+        return;
+    }
 
-        this.moveHorizontally();
-        this.moveVertically();
+    this.moveHorizontally();
+    this.moveVertically();
     }
 
 
@@ -408,11 +412,15 @@ class Character extends MovableObject {
      * @returns {boolean} True when a movement key is pressed.
      */
     isMoving() {
+        if (this.controlsLocked) {
+            return false;
+        }
+
         return this.keyboard.RIGHT ||
-            this.keyboard.LEFT ||
+         this.keyboard.LEFT ||
             this.keyboard.UP ||
             this.keyboard.DOWN;
-    }
+     }
 
 
     /**
@@ -670,14 +678,14 @@ class Character extends MovableObject {
     * @returns {boolean} True if a bubble attack is available.
     */
     canStartBubbleAttack() {
-        return !this.bubbleKeyLocked &&
+        return !this.controlsLocked &&
+            !this.bubbleKeyLocked &&
             !this.isBubbleAttacking &&
             !this.isAttacking &&
             !this.isHurt() &&
             !this.isDead() &&
             this.poison > 0;
     }
-
 
     /**
     * Starts a bubble attack and consumes one poison charge.

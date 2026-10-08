@@ -13,18 +13,18 @@ let world = null;
 function init() {
     canvas = document.getElementById('canvas');
 
-    addRestartEvent();
+    addRestartEvents();
     startGame();
 }
 
 
 /**
- * Creates a new game world.
+ * Creates a new game world and hides all end screens.
  *
  * @returns {void}
  */
 function startGame() {
-    hideGameOverScreen();
+    hideEndScreens();
     world = new World(canvas);
 }
 
@@ -55,28 +55,30 @@ function stopCurrentGame() {
 
 
 /**
- * Adds the click event to the restart button.
+ * Adds click events to both restart buttons.
  *
  * @returns {void}
  */
-function addRestartEvent() {
+function addRestartEvents() {
     const restartButton = document.getElementById('restart-button');
+    const winRestartButton = document.getElementById('win-restart-button');
 
     restartButton.addEventListener('click', restartGame);
+    winRestartButton.addEventListener('click', restartGame);
 }
 
 
 /**
- * Hides the game-over screen.
+ * Hides both the game-over and victory screens.
  *
  * @returns {void}
  */
-function hideGameOverScreen() {
-    const gameOverScreen = document.getElementById(
-        'game-over-screen'
-    );
+function hideEndScreens() {
+    const gameOverScreen = document.getElementById('game-over-screen');
+    const youWinScreen = document.getElementById('you-win-screen');
 
     gameOverScreen.classList.remove('visible');
+    youWinScreen.classList.remove('visible');
 }
 
 

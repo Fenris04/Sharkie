@@ -5,7 +5,7 @@ class EnemySpawner {
     /** @type {World} Reference to the current game world. */
     world;
 
-    /** @type {number | null} Current spawn timeout identifier. */
+    /** @type {number|null} Current spawn timeout identifier. */
     spawnTimeout = null;
 
     /** @type {boolean} Whether spawning is active. */
@@ -13,6 +13,12 @@ class EnemySpawner {
 
     /** @type {number} Maximum number of living enemies. */
     maxEnemies = 8;
+
+    /** @type {number} Character position at which spawning stops. */
+    bossAreaStartX = 7000;
+
+    /** @type {number} First world position reserved for the boss area. */
+    bossSpawnLimitX = 7500;
 
     /**
      * Creates an enemy spawner.
@@ -29,7 +35,7 @@ class EnemySpawner {
      * @returns {void}
      */
     start() {
-        if (this.running) return;
+        if (this.running || this.hasReachedBossArea()) return;
 
         this.running = true;
         this.scheduleNextSpawn();
@@ -43,9 +49,21 @@ class EnemySpawner {
     scheduleNextSpawn() {
         if (!this.running) return;
 
+        if (this.hasReachedBossArea()) {
+            this.stop();
+            return;
+        }
+
         const delay = 500 + Math.random() * 700;
 
         this.spawnTimeout = setTimeout(() => {
+            if (!this.running) return;
+
+            if (this.hasReachedBossArea()) {
+                this.stop();
+                return;
+            }
+
             this.spawnEnemy();
             this.scheduleNextSpawn();
         }, delay);
@@ -57,18 +75,38 @@ class EnemySpawner {
      * @returns {void}
      */
     spawnEnemy() {
+        if (this.hasReachedBossArea()) {
+            this.stop();
+            return;
+        }
+
         if (this.countLivingEnemies() >= this.maxEnemies) return;
 
         const x = this.getSpawnX();
+
+        if (x >= this.bossSpawnLimitX) {
+            this.stop();
+            return;
+        }
+
         const y = this.findFreeSpawnY(x);
 
         if (y === null) return;
 
         if (this.shouldSpawnPufferFish()) {
-         this.world.enemies.push(new PufferFish(x, y));
+            this.world.enemies.push(new PufferFish(x, y));
         } else {
-          this.world.jellyfish.push(new JellyFish(x, y));
-      }
+            this.world.jellyfish.push(new JellyFish(x, y));
+        }
+    }
+
+    /**
+     * Checks whether Sharkie has reached the boss area.
+     *
+     * @returns {boolean} True when normal enemy spawning must stop.
+     */
+    hasReachedBossArea() {
+        return this.world.character.x >= this.bossAreaStartX;
     }
 
     /**
@@ -78,16 +116,16 @@ class EnemySpawner {
      */
     getSpawnX() {
         const visibleRight =
-        -this.world.cameraX + this.world.canvas.width;
+            -this.world.cameraX + this.world.canvas.width;
 
         return Math.min(
-          visibleRight + 10,
-          this.world.levelWidth - 110
+            visibleRight + 10,
+            this.world.levelWidth - 110
         );
     }
 
     /**
-     * Counts living puffer fish and jellyfish.
+     * Counts living puffer fish and jellyfish near the visible area.
      *
      * @returns {number} Number of living enemies.
      */
@@ -96,13 +134,13 @@ class EnemySpawner {
         const visibleRight = visibleLeft + this.world.canvas.width;
 
         const enemies = [
-          ...this.world.enemies,
-          ...this.world.jellyfish
-      ];
+            ...this.world.enemies,
+            ...this.world.jellyfish
+        ];
 
-       return enemies.filter(enemy =>
-          !enemy.isDead() &&
-           enemy.x + enemy.width > visibleLeft - 150 &&
+        return enemies.filter(enemy =>
+            !enemy.isDead() &&
+            enemy.x + enemy.width > visibleLeft - 150 &&
             enemy.x < visibleRight + 150
         ).length;
     }
@@ -119,44 +157,49 @@ class EnemySpawner {
     }
 
     /**
- * Finds a vertical spawn position without nearby enemies.
- *
- * @param {number} x - Horizontal spawn position.
- * @returns {number|null} Available vertical position or null.
- */
-findFreeSpawnY(x) {
-    for (let attempt = 0; attempt < 12; attempt++) {
-        const y = 40 + Math.random() * 300;
+     * Finds a vertical spawn position without nearby enemies.
+     *
+     * @param {number} x - Horizontal spawn position.
+     * @returns {number|null} Available vertical position or null.
+     */
+    findFreeSpawnY(x) {
+        for (let attempt = 0; attempt < 12; attempt++) {
+            const y = 40 + Math.random() * 300;
 
-        if (this.isSpawnPositionFree(x, y)) return y;
+            if (this.isSpawnPositionFree(x, y)) {
+                return y;
+            }
+        }
+
+        return null;
     }
 
-    return null;
-}
+    /**
+     * Checks whether a spawn position has enough distance from enemies.
+     *
+     * @param {number} x - Horizontal spawn position.
+     * @param {number} y - Vertical spawn position.
+     * @returns {boolean} True when the position is free.
+     */
+    isSpawnPositionFree(x, y) {
+        const enemies = [
+            ...this.world.enemies,
+            ...this.world.jellyfish
+        ];
 
-  /**
-  * Checks whether a spawn position has enough distance from enemies.
-  *
-  * @param {number} x - Horizontal spawn position.
-  * @param {number} y - Vertical spawn position.
-  * @returns {boolean} True when the position is free.
-  */
-  isSpawnPositionFree(x, y) {
-    const enemies = [...this.world.enemies, ...this.world.jellyfish];
+        return enemies.every(enemy =>
+            enemy.isDead() ||
+            Math.abs(enemy.x - x) > 170 ||
+            Math.abs(enemy.y - y) > 140
+        );
+    }
 
-    return enemies.every(enemy =>
-        enemy.isDead() ||
-        Math.abs(enemy.x - x) > 170 ||
-        Math.abs(enemy.y - y) > 140
-    );
-  }
-
-  /**
-  * Randomly selects a puffer fish with a slightly higher probability.
-  *
-  * @returns {boolean} True when a puffer fish should spawn.
-  */
-  shouldSpawnPufferFish() {
-     return Math.random() < 0.6;
-  }
+    /**
+     * Randomly selects a puffer fish with a slightly higher probability.
+     *
+     * @returns {boolean} True when a puffer fish should spawn.
+     */
+    shouldSpawnPufferFish() {
+        return Math.random() < 0.6;
+    }
 }

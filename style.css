@@ -17,7 +17,8 @@ canvas {
     height: 480px;
 }
 
-.game-over-screen {
+.game-over-screen,
+.you-win-screen {
     position: absolute;
     inset: 0;
     display: none;
@@ -28,13 +29,27 @@ canvas {
     background-color: rgba(0, 0, 0, 0.45);
 }
 
-.game-over-screen.visible {
+.game-over-screen.visible,
+.you-win-screen.visible {
     display: flex;
 }
 
 .game-over-title {
     width: 75%;
     height: auto;
+}
+
+.you-win-title {
+    margin: 0;
+    color: #ffd700;
+    font-family: Arial, sans-serif;
+    font-size: 72px;
+    font-weight: bold;
+    text-align: center;
+    text-shadow:
+        3px 3px 0 #176a87,
+        -2px -2px 0 #176a87,
+        0 6px 12px rgba(0, 0, 0, 0.6);
 }
 
 .restart-button {
@@ -44,4 +59,8 @@ canvas {
     font-size: 24px;
     font-weight: bold;
     cursor: pointer;
+}
+
+.restart-button:hover {
+    background-color: #ffd700;
 }

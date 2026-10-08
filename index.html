@@ -21,8 +21,8 @@
     <script src="models/coin-status-bar.class.js" defer></script>
     <script src="models/poison-bottle.class.js" defer></script>
     <script src="models/poison-status-bar.class.js" defer></script>
+    <script src="models/endboss.class.js" defer></script>
     <script src="models/world.class.js" defer></script>
-    
 
     <script src="js/keyboard.js" defer></script>
     <script src="js/game.js" defer></script>
@@ -41,8 +41,24 @@
           alt="Game Over"
         />
 
-        <button id="restart-button" class="restart-button" type="button">
+        <button
+          id="restart-button"
+          class="restart-button"
+          type="button"
+        >
           Try again
+        </button>
+      </div>
+
+      <div id="you-win-screen" class="you-win-screen">
+        <h2 class="you-win-title">YOU WIN!</h2>
+
+        <button
+          id="win-restart-button"
+          class="restart-button"
+          type="button"
+        >
+          Play again
         </button>
       </div>
     </div>

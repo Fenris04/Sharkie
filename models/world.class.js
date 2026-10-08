@@ -13,14 +13,25 @@ class World {
     character;
 
     /** @type {number} Total width of the game world. */
-    levelWidth = 8640;
+    levelWidth = 10800;
 
     /** @type {number} Horizontal camera offset. */
     cameraX = 0;
 
-    /** @type {BackgroundObject[]} Repeating background images. */
-    backgrounds = Array.from({ length: 12 }, (_, index) =>
-        new BackgroundObject(
+    /** @type {number} Left boundary of the boss arena. */
+    bossArenaStartX = 7200;
+
+    /** @type {boolean} Whether the boss arena is locked. */
+    bossArenaLocked = false;
+
+   /**
+    * Background images covering the entire level.
+    *
+    * @type {BackgroundObject[]}
+    */
+    backgrounds = Array.from(
+        { length: 15 },
+        (_, index) => new BackgroundObject(
             'assets/3. Background/Light/full.png',
             index * 720
         )
@@ -96,6 +107,29 @@ class World {
     /** @type {PoisonStatusBar} Bubble ammunition status bar. */
     poisonStatusBar = new PoisonStatusBar();    
 
+    /** @type {Endboss} */
+    endboss = new Endboss();
+
+    /**
+    * Current phase of the game and boss cutscenes.
+    *
+    * @type {'playing'|'boss-pan'|'boss-intro'|'boss-return'|'boss-fight'|'boss-death-pan'|'boss-death'|'won'}
+    */
+    gameState = 'playing';
+
+    /**
+    * Current phase of the boss introduction.
+    *
+    * @type {'playing'|'boss-pan'|'boss-intro'|'boss-return'|'boss-fight'}
+    */
+    gameState = 'playing';
+
+    /** @type {number} Camera movement speed in pixels per frame. */
+    cutsceneCameraSpeed = 12;
+
+    /** @type {number} Distance at which the camera has reached its target. */
+    cameraArrivalTolerance = 12;
+
     /**
      * Creates a new game world.
      *
@@ -127,17 +161,39 @@ class World {
     }
 
     /**
-     * Updates movement, collisions, collectibles, and game state.
-     *
-     * @returns {void}
-     */
+    * Updates movement, collisions, collectibles, and the boss cutscene.
+    *
+    * @returns {void}
+    */
     update() {
+        if (this.isBossCutsceneActive()) {
+            this.updateBossCutscene();
+            return;
+        }
+
         this.character.move();
+
+        if (
+            this.gameState === 'playing' &&
+            !this.character.isDead() &&
+            this.character.x >= this.endboss.activationX
+        ) {
+            this.startBossCutscene();
+            return;
+        }
+
+        this.updateBossArena();
+        this.keepCharacterInsideBossArena();
+
         this.updateBubbles();
         this.checkCollisions();
         this.checkJellyfishCollisions();
         this.checkAttackCollisions();
         this.checkBubbleCollisions();
+        if (this.gameState === 'boss-fight' && this.endboss.isDead()) {
+            this.startBossDeathCutscene();
+            return;
+        }
         this.checkCoinCollisions();
         this.checkPoisonBottleCollisions();
         this.removeDefeatedEnemies();
@@ -172,6 +228,7 @@ class World {
         this.drawCoinCounter();
         this.updatePoisonStatusBar();
         this.poisonStatusBar.draw(this.ctx);
+        this.drawBossHealth();
     }
 
     /**
@@ -185,6 +242,7 @@ class World {
         this.addObjectsToMap(this.enemies);
         this.addObjectsToMap(this.jellyfish);
         this.addObjectsToMap(this.bubbles);
+        this.endboss.draw(this.ctx);
         this.character.draw(this.ctx);
         this.drawHitboxes();
         this.addObjectsToMap(this.poisonBottles);
@@ -269,8 +327,35 @@ class World {
         if (!this.character.canAttackEnemy()) return;
 
         this.enemies.forEach(enemy => {
-            if (this.isAttackHittingEnemy(enemy)) enemy.die();
+            if (this.isAttackHittingEnemy(enemy)) {
+                enemy.die();
+            }
         });
+
+        this.checkFinSlapBossCollision();
+    }
+
+    /**
+    * Checks whether Sharkie's fin slap damages the boss.
+    *
+    * @returns {void}
+    */
+    checkFinSlapBossCollision() {
+        if (this.gameState !== 'boss-fight') return;
+        if (this.endboss.isDead()) return;
+
+        const attack = this.character.getAttackHitbox();
+        const boss = this.endboss;
+
+        const isHitting =
+            attack.x < boss.x + boss.width &&
+            attack.x + attack.width > boss.x &&
+            attack.y < boss.y + boss.height &&
+            attack.y + attack.height > boss.y;
+
+        if (isHitting) {
+            boss.hit(10);
+        }
     }
 
     /**
@@ -311,7 +396,7 @@ class World {
      * @returns {void}
      */
     checkBubbleCollisions() {
-        this.bubbles.forEach(bubble => {
+       this.bubbles.forEach(bubble => {
             this.jellyfish.forEach(jellyfish => {
                 if (bubble.hasHit || jellyfish.isDead()) return;
 
@@ -320,7 +405,32 @@ class World {
                     jellyfish.die();
                 }
             });
+
+            this.checkBubbleBossCollision(bubble);
         });
+    }
+
+    /**
+    * Checks whether a poison bubble damages the final boss.
+    *
+    * @param {Bubble} bubble - Bubble projectile to check.
+    * @returns {void}
+    */
+    checkBubbleBossCollision(bubble) {
+        if (this.gameState !== 'boss-fight') return;
+        if (bubble.hasHit || this.endboss.isDead()) return;
+
+        const boss = this.endboss;
+
+        const isHitting =
+            bubble.x < boss.x + boss.width &&
+            bubble.x + bubble.width > boss.x &&
+            bubble.y < boss.y + boss.height &&
+            bubble.y + bubble.height > boss.y;
+
+        if (isHitting && boss.hit(20)) {
+            bubble.hasHit = true;
+        }
     }
 
     /**
@@ -416,16 +526,14 @@ class World {
     }
 
     /**
-     * Updates the horizontal camera position.
-     *
-     * @returns {void}
-     */
+    * Follows Sharkie while respecting world and boss arena boundaries.
+    *
+    * @returns {void}
+    */
     updateCamera() {
         const desiredCameraX = -this.character.x + 150;
-        const minCameraX = -(this.levelWidth - this.canvas.width);
 
-        this.cameraX = Math.min(0, desiredCameraX);
-        this.cameraX = Math.max(minCameraX, this.cameraX);
+        this.cameraX = this.clampCameraX(desiredCameraX);
     }
 
     /**
@@ -483,6 +591,7 @@ class World {
     stop() {
         this.running = false;
         this.enemySpawner.stop();
+        this.endboss.stopIntervals();
         this.character.stopIntervals();
         this.stopEnemyIntervals();
         this.stopJellyfishIntervals();
@@ -601,5 +710,289 @@ class World {
             (this.character.poison / this.character.maxPoison) * 100;
 
         this.poisonStatusBar.setPercentage(percentage);
+    }
+
+    /**
+    * Locks the boss arena after the final boss is activated.
+    *
+    * @returns {void}
+    */
+    updateBossArena() {
+        if (this.endboss.activated && !this.bossArenaLocked) {
+            this.bossArenaLocked = true;
+            this.enemySpawner.stop();
+        }
+    }
+
+    /**
+    * Prevents Sharkie from leaving the locked boss arena.
+    *
+    * @returns {void}
+    */
+    keepCharacterInsideBossArena() {
+        if (!this.bossArenaLocked) return;
+
+        this.character.x = Math.max(
+            this.bossArenaStartX,
+            this.character.x
+        );
+    }
+
+    /**
+ * Checks whether the boss introduction is currently running.
+ *
+ * @returns {boolean} True during the boss cutscene.
+ */
+isBossCutsceneActive() {
+    return this.gameState === 'boss-pan' ||
+        this.gameState === 'boss-intro' ||
+        this.gameState === 'boss-return' ||
+        this.gameState === 'boss-death-pan' ||
+        this.gameState === 'boss-death' ||
+        this.gameState === 'won';
+}
+
+/**
+ * Locks Sharkie's controls and starts the boss camera sequence.
+ *
+ * @returns {void}
+ */
+startBossCutscene() {
+    this.gameState = 'boss-pan';
+    this.bossArenaLocked = true;
+
+    this.enemySpawner.stop();
+
+    this.character.controlsLocked = true;
+    this.character.isAttacking = false;
+    this.character.isBubbleAttacking = false;
+    this.character.currentImage = 0;
+
+    this.character.attackKeyLocked = true;
+    this.character.bubbleKeyLocked = true;
+}
+
+/**
+ * Updates the current phase of the boss introduction.
+ *
+ * @returns {void}
+ */
+updateBossCutscene() {
+    if (this.gameState === 'boss-pan') {
+        this.panCameraToBoss();
+    } else if (this.gameState === 'boss-intro') {
+        this.waitForBossIntroduction();
+    } else if (this.gameState === 'boss-return') {
+        this.returnCameraToCharacter();
+    } else if (this.gameState === 'boss-death-pan') {
+        this.panCameraToDeadBoss();
+    } else if (this.gameState === 'boss-death') {
+        this.waitForBossDeath();
+    }
+}
+
+/**
+ * Moves the camera toward the boss before activating the introduction.
+ *
+ * @returns {void}
+ */
+panCameraToBoss() {
+    const bossCenter = this.endboss.x + this.endboss.width / 2;
+
+    const targetX = this.clampCameraX(
+        this.canvas.width / 2 - bossCenter
+    );
+
+    this.moveCameraTowards(targetX);
+
+    if (this.hasCameraReached(targetX)) {
+        this.gameState = 'boss-intro';
+
+        this.endboss.checkActivation(this.character.x);
+    }
+}
+
+/**
+ * Waits until the boss has played all introduction frames.
+ *
+ * @returns {void}
+ */
+waitForBossIntroduction() {
+    if (this.endboss.introductionFinished) {
+        this.gameState = 'boss-return';
+    }
+}
+
+/**
+ * Moves the camera back to Sharkie after the introduction.
+ *
+ * @returns {void}
+ */
+returnCameraToCharacter() {
+    const targetX = this.clampCameraX(
+        -this.character.x + 150
+    );
+
+    this.moveCameraTowards(targetX);
+
+    if (this.hasCameraReached(targetX)) {
+        this.finishBossCutscene();
+    }
+}
+
+/**
+ * Restores controls and begins the boss fight.
+ *
+ * @returns {void}
+ */
+finishBossCutscene() {
+    this.gameState = 'boss-fight';
+
+    this.character.controlsLocked = false;
+    this.character.currentImage = 0;
+}
+
+/**
+ * Moves the camera smoothly toward a horizontal target.
+ *
+ * @param {number} targetX - Desired camera offset.
+ * @returns {void}
+ */
+moveCameraTowards(targetX) {
+    const difference = targetX - this.cameraX;
+
+    if (Math.abs(difference) <= this.cutsceneCameraSpeed) {
+        this.cameraX = targetX;
+        return;
+    }
+
+    this.cameraX += Math.sign(difference) *
+        this.cutsceneCameraSpeed;
+}
+
+/**
+ * Checks whether the camera has reached its target.
+ *
+ * @param {number} targetX - Desired camera offset.
+ * @returns {boolean} True when the camera is close enough.
+ */
+hasCameraReached(targetX) {
+    return Math.abs(this.cameraX - targetX) <=
+        this.cameraArrivalTolerance;
+}
+
+    /**
+    * Keeps the camera within the world and the locked boss arena.
+    *
+    * @param {number} targetX - Requested camera offset.
+    * @returns {number} Valid camera offset.
+    */
+    clampCameraX(targetX) {
+        const minCameraX = -(
+            this.levelWidth - this.canvas.width
+        );
+
+        let cameraX = Math.max(
+            minCameraX,
+            Math.min(0, targetX)
+        );
+
+        if (this.bossArenaLocked) {
+            cameraX = Math.min(
+                cameraX,
+                -this.bossArenaStartX
+            );
+        }
+
+        return cameraX;
+    }
+
+    /**
+    * Displays the boss health during the boss fight.
+    *
+    * @returns {void}
+    */
+    drawBossHealth() {
+        if (this.gameState !== 'boss-fight') return;
+
+        this.ctx.save();
+
+        this.ctx.font = 'bold 22px Arial';
+        this.ctx.fillStyle = 'white';
+        this.ctx.strokeStyle = '#176A87';
+        this.ctx.lineWidth = 4;
+
+        const text = `Boss: ${this.endboss.energy} / 100`;
+
+        this.ctx.strokeText(text, 450, 40);
+        this.ctx.fillText(text, 450, 40);
+
+        this.ctx.restore();
+    }
+
+    /**
+ * Starts the boss death cutscene and locks Sharkie's controls.
+ *
+ * @returns {void}
+ */
+startBossDeathCutscene() {
+    if (this.gameState !== 'boss-fight') return;
+
+    this.gameState = 'boss-death-pan';
+    this.character.controlsLocked = true;
+    this.character.isAttacking = false;
+    this.character.isBubbleAttacking = false;
+    this.character.currentImage = 0;
+
+    this.character.attackKeyLocked = true;
+    this.character.bubbleKeyLocked = true;
+
+    this.bubbles = [];
+    this.enemySpawner.stop();
+}
+
+    /**
+    * Moves the camera toward the defeated boss.
+    *
+    * @returns {void}
+    */
+    panCameraToDeadBoss() {
+        const bossCenter = this.endboss.x + this.endboss.width / 2;
+
+        const targetX = this.clampCameraX(
+            this.canvas.width / 2 - bossCenter
+        );
+
+        this.moveCameraTowards(targetX);
+
+        if (this.hasCameraReached(targetX)) {
+            this.gameState = 'boss-death';
+            this.endboss.startDeathAnimation();
+        }
+    }
+
+    /**
+    * Waits for the boss death animation to finish.
+    *
+    * @returns {void}
+    */
+    waitForBossDeath() {
+        if (!this.endboss.deathAnimationFinished) return;
+
+        this.gameState = 'won';
+        this.showYouWinScreen();
+    }
+
+    /**
+    * Displays the victory screen.
+    *
+    * @returns {void}
+    */
+    showYouWinScreen() {
+        const winScreen = document.getElementById('you-win-screen');
+
+        if (winScreen) {
+            winScreen.classList.add('visible');
+        }
     }
 }
