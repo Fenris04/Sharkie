@@ -73,6 +73,12 @@ class World {
     /** @type {boolean} Whether the game loop is running. */
     running = true;
 
+    /** @type {number} Total number of coins in the level. */
+    totalCoins = 19;
+
+    /** @type {CoinStatusBar} Coin collection progress bar. */
+    coinStatusBar = new CoinStatusBar();
+
     /**
      * Creates a new game world.
      *
@@ -144,6 +150,7 @@ class World {
         this.ctx.restore();
 
         this.statusBar.draw(this.ctx);
+        this.coinStatusBar.draw(this.ctx);
         this.drawCoinCounter();
     }
 
@@ -321,6 +328,9 @@ class World {
 
         coin.collect();
         this.collectedCoins++;
+
+        const percentage = this.collectedCoins / this.totalCoins * 100;
+        this.coinStatusBar.setPercentage(percentage);
     }
 
     /**
@@ -404,9 +414,18 @@ class World {
      */
     drawCoinCounter() {
         this.ctx.save();
-        this.ctx.font = 'bold 24px Arial';
+
+        this.ctx.font = 'bold 18px Arial';
         this.ctx.fillStyle = 'white';
-        this.ctx.fillText(`Coins: ${this.collectedCoins}`, 25, 100);
+        this.ctx.strokeStyle = '#176A87';
+        this.ctx.lineWidth = 3;
+        this.ctx.textBaseline = 'middle';
+
+        const text = `${this.collectedCoins} / ${this.totalCoins}`;
+
+        this.ctx.strokeText(text, 225, 105);
+        this.ctx.fillText(text, 225, 105);
+
         this.ctx.restore();
     }
 
