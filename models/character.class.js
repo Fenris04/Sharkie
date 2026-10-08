@@ -722,17 +722,13 @@ class Character extends MovableObject {
     */
     shootBubble() {
         const bubbleX = this.otherDirection
-            ? this.x + 35
-            : this.x + this.width - 95;
+        ? this.x + 35
+        : this.x + this.width - 95;
 
         const bubbleY = this.y + 110;
 
-        const bubble = new Bubble(
-            bubbleX,
-            bubbleY,
-            this.otherDirection
+        this.world.bubbles.push(
+            new Bubble(bubbleX, bubbleY, this.otherDirection)
         );
-
-        this.world.bubbles.push(bubble);
     }
 }

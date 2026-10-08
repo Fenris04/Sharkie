@@ -1,88 +1,73 @@
 /**
- * Represents the complete game world.
- * Controls rendering, movement, collisions and the camera.
+ * Manages the game world, collisions, camera, and enemies.
  */
 class World {
-
-    /** @type {HTMLCanvasElement} Canvas used to display the game. */
+    /** @type {HTMLCanvasElement} Game canvas. */
     canvas;
 
-    /** @type {CanvasRenderingContext2D} Rendering context of the canvas. */
+    /** @type {CanvasRenderingContext2D} Canvas drawing context. */
     ctx;
 
-    /** @type {Character} The playable character Sharkie. */
+    /** @type {Character} Player character. */
     character;
 
-    /** @type {number} Total width of the game world. */
-    levelWidth = 2160;
+    /** @type {number} Total level width. */
+    levelWidth = 8640;
 
-    /** @type {number} Current horizontal camera position. */
+    /** @type {number} Horizontal camera offset. */
     cameraX = 0;
 
-    /** @type {BackgroundObject[]} Background images of the game world. */
-    backgrounds = [
+    /** @type {BackgroundObject[]} Repeating background tiles. */
+    backgrounds = Array.from({ length: 12 }, (_, index) =>
         new BackgroundObject(
             'assets/3. Background/Light/full.png',
-            0
-        ),
-        new BackgroundObject(
-            'assets/3. Background/Light/full.png',
-            720
-        ),
-        new BackgroundObject(
-            'assets/3. Background/Light/full.png',
-            1440
+            index * 720
         )
-    ];
+    );
 
-    /** @type {PufferFish[]} Enemies currently placed in the game world. */
-    enemies = [
-        new PufferFish(900, 100),
-        new PufferFish(1300, 280),
-        new PufferFish(1800, 180)
-    ];
+    /** @type {PufferFish[]} Active puffer fish. */
+    enemies = [];
 
-    /** @type {JellyFish[]} Jellyfish currently placed in the game world. */
-    jellyfish = [
-        new JellyFish(1100, 180),
-        new JellyFish(1650, 260)
-    ];
-
-    /** @type {StatusBar} Displays Sharkie's current health. */
-    statusBar = new StatusBar();
-
-    /** @type {boolean} Indicates whether the game-over screen is visible. */
-    gameOver = false;
-
-    /** @type {boolean} Indicates whether this world is still running. */
-    running = true;
+    /** @type {JellyFish[]} Active jellyfish. */
+    jellyfish = [];
 
     /** @type {Bubble[]} Active bubble projectiles. */
     bubbles = [];
 
+    /** @type {StatusBar} Sharkie's health bar. */
+    statusBar = new StatusBar();
+
+    /** @type {EnemySpawner} Random enemy generator. */
+    enemySpawner;
+
+    /** @type {boolean} Whether the game-over screen was shown. */
+    gameOver = false;
+
+    /** @type {boolean} Whether the game loop is running. */
+    running = true;
+
     /**
      * Creates a new game world.
      *
-     * @param {HTMLCanvasElement} canvas - Canvas used to render the game.
+     * @param {HTMLCanvasElement} canvas - Game canvas.
      */
     constructor(canvas) {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
         this.character = new Character(keyboard, this);
+        this.enemySpawner = new EnemySpawner(this);
 
+        this.enemySpawner.start();
         this.draw();
     }
 
-
     /**
-    * Continuously updates and redraws the game world.
-    *
-    * @returns {void}
-    */
+     * Runs the game loop.
+     *
+     * @returns {void}
+     */
     draw() {
-        if (!this.running) {
-            return;
-        }
+        if (!this.running) return;
 
         this.clearCanvas();
         this.update();
@@ -91,12 +76,11 @@ class World {
         requestAnimationFrame(() => this.draw());
     }
 
-
     /**
-    * Updates all game logic before the next frame is drawn.
-    *
-    * @returns {void}
-    */
+     * Updates all gameplay systems.
+     *
+     * @returns {void}
+     */
     update() {
         this.character.move();
         this.updateBubbles();
@@ -106,45 +90,35 @@ class World {
         this.checkBubbleCollisions();
         this.removeDefeatedEnemies();
         this.removeDefeatedJellyfish();
+        this.removeOffscreenEnemies();
         this.updateCamera();
         this.checkGameOver();
     }
 
-
     /**
-     * Clears the complete canvas before drawing the next frame.
+     * Clears the visible canvas.
      *
      * @returns {void}
      */
     clearCanvas() {
-        this.ctx.clearRect(
-            0,
-            0,
-            this.canvas.width,
-            this.canvas.height
-        );
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
 
-
     /**
-     * Draws the game world and the fixed user interface.
+     * Draws world objects with the camera offset and the health bar.
      *
      * @returns {void}
      */
     drawGameWorld() {
         this.ctx.save();
         this.ctx.translate(this.cameraX, 0);
-
         this.drawWorldObjects();
-
         this.ctx.restore();
-
         this.statusBar.draw(this.ctx);
     }
 
-
     /**
-     * Draws all objects that move together with the game world.
+     * Draws all objects inside the game world.
      *
      * @returns {void}
      */
@@ -153,48 +127,36 @@ class World {
         this.addObjectsToMap(this.enemies);
         this.addObjectsToMap(this.jellyfish);
         this.addObjectsToMap(this.bubbles);
-
         this.character.draw(this.ctx);
         this.drawHitboxes();
     }
 
+    /**
+     * Draws collision hitboxes for debugging.
+     *
+     * @returns {void}
+     */
+    drawHitboxes() {
+        this.character.drawHitbox(this.ctx);
+        this.enemies.forEach(enemy => enemy.drawHitbox(this.ctx));
+        this.jellyfish.forEach(jellyfish => jellyfish.drawHitbox(this.ctx));
+    }
 
     /**
-     * Draws multiple drawable objects onto the canvas.
+     * Draws each object from an array.
      *
-     * @param {DrawableObject[]} objects - Objects that should be drawn.
+     * @param {DrawableObject[]} objects - Objects to draw.
      * @returns {void}
      */
     addObjectsToMap(objects) {
-        objects.forEach(object => {
-            object.draw(this.ctx);
-        });
+        objects.forEach(object => object.draw(this.ctx));
     }
 
-
     /**
-    * Draws collision hitboxes for development purposes.
-    *
-    * @returns {void}
-    */
-    drawHitboxes() {
-        this.character.drawHitbox(this.ctx);
-
-        this.enemies.forEach(enemy => {
-            enemy.drawHitbox(this.ctx);
-        });
-
-        this.jellyfish.forEach(jellyfish => {
-            jellyfish.drawHitbox(this.ctx);
-        });
-    }
-
-
-    /**
-    * Checks collisions between Sharkie and living enemies.
-    *
-    * @returns {void}
-    */
+     * Checks collisions between Sharkie and living puffer fish.
+     *
+     * @returns {void}
+     */
     checkCollisions() {
         this.enemies.forEach(enemy => {
             if (this.canEnemyDamageCharacter(enemy)) {
@@ -203,131 +165,62 @@ class World {
         });
     }
 
-
     /**
-    * Checks whether an enemy can currently damage Sharkie.
-    *
-    * @param {PufferFish} enemy - Enemy that should be checked.
-    * @returns {boolean} True when the enemy touches Sharkie.
-    */
+     * Checks whether a puffer fish can damage Sharkie.
+     *
+     * @param {PufferFish} enemy - Enemy to check.
+     * @returns {boolean} Whether the enemy touches Sharkie.
+     */
     canEnemyDamageCharacter(enemy) {
-        return !enemy.isDead() &&
-            this.character.isColliding(enemy);
+        return !enemy.isDead() && this.character.isColliding(enemy);
     }
 
+    /**
+     * Checks collisions between Sharkie and living jellyfish.
+     *
+     * @returns {void}
+     */
+    checkJellyfishCollisions() {
+        this.jellyfish.forEach(jellyfish => {
+            if (!jellyfish.isDead() && this.character.isColliding(jellyfish)) {
+                this.damageCharacter(20, 'electric');
+            }
+        });
+    }
 
     /**
-    * Damages Sharkie and updates the health status bar.
-    *
-    * @param {number} [damage=20] - Amount of damage.
-    * @param {'poison'|'electric'} [type='poison'] - Damage type.
-    * @returns {void}
-    */
+     * Applies damage to Sharkie and updates the health bar.
+     *
+     * @param {number} damage - Damage amount.
+     * @param {string} type - Damage animation type.
+     * @returns {void}
+     */
     damageCharacter(damage = 20, type = 'poison') {
         this.character.hit(damage, type);
         this.statusBar.setPercentage(this.character.energy);
     }
 
-
     /**
-     * Updates the horizontal camera position based on Sharkie's position.
-     * Prevents the camera from moving outside the game world.
+     * Checks fin-slap collisions against puffer fish.
      *
      * @returns {void}
      */
-    updateCamera() {
-        const desiredCameraX = -this.character.x + 150;
-        const minCameraX = -(this.levelWidth - this.canvas.width);
+    checkAttackCollisions() {
+        if (!this.character.canAttackEnemy()) return;
 
-        this.cameraX = Math.min(0, desiredCameraX);
-        this.cameraX = Math.max(minCameraX, this.cameraX);
-    }
-
-    /**
-    * Checks whether the game should enter the game-over state.
-    *
-    * @returns {void}
-    */
-    checkGameOver() {
-        if (!this.character.isDeathAnimationFinished()) {
-            return;
-        }
-
-        this.showGameOverScreen();
-    }
-
-
-    /**
-    * Displays the game-over screen once.
-    *
-    * @returns {void}
-    */
-    showGameOverScreen() {
-        if (this.gameOver) {
-            return;
-        }
-
-        this.gameOver = true;
-
-        const gameOverScreen = document.getElementById(
-            'game-over-screen'
-        );
-
-        gameOverScreen.classList.add('visible');
-    }
-
-    /**
- * Stops the current game world and all running intervals.
- *
- * @returns {void}
- */
-stop() {
-    this.running = false;
-    this.character.stopIntervals();
-    this.stopEnemyIntervals();
-    this.stopJellyfishIntervals();
-}
-
-
-    /**
-    * Stops all intervals belonging to the enemies.
-    *
-    * @returns {void}
-    */
-    stopEnemyIntervals() {
         this.enemies.forEach(enemy => {
-            enemy.stopIntervals();
+            if (this.isAttackHittingEnemy(enemy)) enemy.die();
         });
     }
 
     /**
- * Checks whether Sharkie's fin slap hits an enemy.
- *
- * @returns {void}
- */
-checkAttackCollisions() {
-    if (!this.character.canAttackEnemy()) {
-        return;
-    }
-
-    this.enemies.forEach(enemy => {
-        if (this.isAttackHittingEnemy(enemy)) {
-            enemy.die();
-        }
-    });
-}
-
-
-    /**
-    * Checks whether the attack hitbox overlaps an enemy.
-    *
-    * @param {PufferFish} enemy - Enemy that should be checked.
-    * @returns {boolean} True when the fin slap hits the enemy.
-    */
+     * Checks whether the fin-slap hitbox overlaps a puffer fish.
+     *
+     * @param {PufferFish} enemy - Enemy to check.
+     * @returns {boolean} Whether the attack hits the enemy.
+     */
     isAttackHittingEnemy(enemy) {
-        if (enemy.isDead()) {
-            return false;
-        }
+        if (enemy.isDead()) return false;
 
         const attack = this.character.getAttackHitbox();
 
@@ -337,61 +230,23 @@ checkAttackCollisions() {
             attack.y + attack.height > enemy.getTop();
     }
 
-
     /**
-    * Removes defeated enemies after they leave the canvas.
-    *
-    * @returns {void}
-    */
-    removeDefeatedEnemies() {
-        this.enemies = this.enemies.filter(enemy => {
-            return !enemy.isDead() || enemy.y < 480;
-        });
-    }
-
- 
-    /**
-    * Stops all running jellyfish intervals.
-    *
-    * @returns {void}
-    */
-    stopJellyfishIntervals() {
-        this.jellyfish.forEach(jellyfish => {
-            jellyfish.stopIntervals();
-        });
-    }
-
-   /**
- * Checks collisions between Sharkie and living jellyfish.
- *
- * @returns {void}
- */
-    checkJellyfishCollisions() {
-        this.jellyfish.forEach(jellyfish => {
-            if (!jellyfish.isDead() &&
-             this.character.isColliding(jellyfish)) {
-             this.damageCharacter(20, 'electric');
-            }
-        });
-    }
- 
-    /**
-    * Moves all active bubbles and removes those outside the level.
-    *
-    * @returns {void}
-    */
+     * Moves bubbles and removes used or out-of-bounds projectiles.
+     *
+     * @returns {void}
+     */
     updateBubbles() {
         this.bubbles.forEach(bubble => bubble.move());
 
         this.bubbles = this.bubbles.filter(bubble =>
-        !bubble.hasHit &&
+            !bubble.hasHit &&
             bubble.x + bubble.width > 0 &&
             bubble.x < this.levelWidth
         );
     }
 
     /**
-     * Checks whether bubbles collide with jellyfish.
+     * Checks bubble collisions against living jellyfish.
      *
      * @returns {void}
      */
@@ -409,10 +264,24 @@ checkAttackCollisions() {
     }
 
     /**
-    * Removes jellyfish only after their death animation finishes.
-    *
-    * @returns {void}
-    */
+     * Removes puffer fish after they fall below the canvas.
+     *
+     * @returns {void}
+     */
+    removeDefeatedEnemies() {
+        this.enemies = this.enemies.filter(enemy => {
+            if (!enemy.isDead() || enemy.y < 480) return true;
+
+            enemy.stopIntervals();
+            return false;
+        });
+    }
+
+    /**
+     * Removes jellyfish after their death animations finish.
+     *
+     * @returns {void}
+     */
     removeDefeatedJellyfish() {
         this.jellyfish = this.jellyfish.filter(jellyfish => {
             if (!jellyfish.isDeathAnimationFinished()) return true;
@@ -422,4 +291,105 @@ checkAttackCollisions() {
         });
     }
 
+    /**
+     * Removes living enemies that have left the left world boundary.
+     *
+     * @returns {void}
+     */
+    removeOffscreenEnemies() {
+        this.enemies = this.enemies.filter(enemy =>
+            this.keepEnemyInWorld(enemy)
+        );
+
+        this.jellyfish = this.jellyfish.filter(jellyfish =>
+            this.keepEnemyInWorld(jellyfish)
+        );
+    }
+
+    /**
+    * Stops enemies that have moved far behind the visible camera area.
+    *
+    * @param {MovableObject} enemy - Enemy to check.
+    * @returns {boolean} Whether the enemy should remain active.
+    */
+    keepEnemyInWorld(enemy) {
+        if (enemy.isDead()) return true;
+
+        const visibleLeft = -this.cameraX;
+        const removalX = Math.max(0, visibleLeft - 100);
+
+        if (enemy.x + enemy.width >= removalX) return true;
+
+        enemy.stopIntervals();
+        return false;
+    }
+
+    /**
+     * Keeps the camera following Sharkie within level boundaries.
+     *
+     * @returns {void}
+     */
+    updateCamera() {
+        const desiredCameraX = -this.character.x + 150;
+        const minCameraX = -(this.levelWidth - this.canvas.width);
+
+        this.cameraX = Math.min(0, desiredCameraX);
+        this.cameraX = Math.max(minCameraX, this.cameraX);
+    }
+
+    /**
+     * Checks whether Sharkie's death animation has finished.
+     *
+     * @returns {void}
+     */
+    checkGameOver() {
+        if (!this.character.isDeathAnimationFinished()) return;
+        this.showGameOverScreen();
+    }
+
+    /**
+     * Displays the game-over overlay once.
+     *
+     * @returns {void}
+     */
+    showGameOverScreen() {
+        if (this.gameOver) return;
+
+        this.gameOver = true;
+        this.enemySpawner.stop();
+
+        document.getElementById('game-over-screen')
+            .classList.add('visible');
+    }
+
+    /**
+     * Stops the game and all active intervals.
+     *
+     * @returns {void}
+     */
+    stop() {
+        this.running = false;
+        this.enemySpawner.stop();
+        this.character.stopIntervals();
+        this.stopEnemyIntervals();
+        this.stopJellyfishIntervals();
+    }
+
+    /**
+     * Stops all puffer fish intervals.
+     *
+     * @returns {void}
+     */
+    stopEnemyIntervals() {
+        this.enemies.forEach(enemy => enemy.stopIntervals());
+    }
+
+    /**
+     * Stops all jellyfish intervals.
+     *
+     * @returns {void}
+     */
+    stopJellyfishIntervals() {
+        this.jellyfish.forEach(jellyfish => jellyfish.stopIntervals());
+    }
 }
