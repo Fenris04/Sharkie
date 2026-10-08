@@ -42,7 +42,7 @@ class Coin extends MovableObject {
      * @returns {void}
      */
     loadCoinImages() {
-        for (let i = 1; i <= 5; i++) {
+        for (let i = 1; i <= 4; i++) {
             const image = new Image();
             image.src = `assets/4. Marcadores/1. Coins/${i}.png`;
             this.coinImages.push(image);

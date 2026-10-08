@@ -94,6 +94,12 @@ class Character extends MovableObject {
     /** @type {number} Current frame of the bubble attack. */
     bubbleImageIndex = 0;
 
+    /** @type {number} Current bubble ammunition. */
+    poison = 5;
+
+    /** @type {number} Maximum bubble ammunition. */
+    maxPoison = 5;
+
     /**
      * Creates Sharkie and loads all required animations.
      *
@@ -659,21 +665,22 @@ class Character extends MovableObject {
 
 
     /**
-    * Checks whether Sharkie can perform a bubble attack.
+    * Checks whether Sharkie can start a bubble attack.
     *
-    * @returns {boolean} True when a bubble attack can start.
+    * @returns {boolean} True if a bubble attack is available.
     */
     canStartBubbleAttack() {
         return !this.bubbleKeyLocked &&
             !this.isBubbleAttacking &&
             !this.isAttacking &&
             !this.isHurt() &&
-            !this.isDead();
+            !this.isDead() &&
+            this.poison > 0;
     }
 
 
     /**
-    * Starts a new bubble attack.
+    * Starts a bubble attack and consumes one poison charge.
     *
     * @returns {void}
     */
@@ -681,6 +688,7 @@ class Character extends MovableObject {
         this.isBubbleAttacking = true;
         this.bubbleKeyLocked = true;
         this.bubbleImageIndex = 0;
+        this.poison--;
     }
 
     /**

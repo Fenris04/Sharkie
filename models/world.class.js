@@ -79,6 +79,20 @@ class World {
     /** @type {CoinStatusBar} Coin collection progress bar. */
     coinStatusBar = new CoinStatusBar();
 
+    /** @type {PoisonBottle[]} Collectible poison bottles. */
+    poisonBottles = [
+        new PoisonBottle(600, 250),
+        new PoisonBottle(1400, 150),
+        new PoisonBottle(2200, 300),
+        new PoisonBottle(3000, 180),
+        new PoisonBottle(3800, 280),
+        new PoisonBottle(4600, 120),
+        new PoisonBottle(5400, 250),
+        new PoisonBottle(6200, 160),
+        new PoisonBottle(7000, 300),
+        new PoisonBottle(7900, 180)
+    ];
+
     /**
      * Creates a new game world.
      *
@@ -122,6 +136,7 @@ class World {
         this.checkAttackCollisions();
         this.checkBubbleCollisions();
         this.checkCoinCollisions();
+        this.checkPoisonBottleCollisions();
         this.removeDefeatedEnemies();
         this.removeDefeatedJellyfish();
         this.removeOffscreenEnemies();
@@ -152,6 +167,7 @@ class World {
         this.statusBar.draw(this.ctx);
         this.coinStatusBar.draw(this.ctx);
         this.drawCoinCounter();
+        this.drawPoisonCounter();
     }
 
     /**
@@ -167,6 +183,7 @@ class World {
         this.addObjectsToMap(this.bubbles);
         this.character.draw(this.ctx);
         this.drawHitboxes();
+        this.addObjectsToMap(this.poisonBottles);
     }
 
     /**
@@ -466,6 +483,7 @@ class World {
         this.stopEnemyIntervals();
         this.stopJellyfishIntervals();
         this.stopCoinIntervals();
+        this.stopPoisonBottleIntervals();
     }
 
     /**
@@ -493,5 +511,68 @@ class World {
      */
     stopCoinIntervals() {
         this.coins.forEach(coin => coin.stopIntervals());
+    }
+
+    /**
+    * Draws the remaining bubble ammunition.
+    *
+    * @returns {void}
+    */
+    drawPoisonCounter() {
+        this.ctx.save();
+        this.ctx.font = 'bold 18px Arial';
+        this.ctx.fillStyle = 'white';
+        this.ctx.strokeStyle = '#176A87';
+        this.ctx.lineWidth = 3;
+
+        const text = `Poison: ${this.character.poison}`;
+        this.ctx.strokeText(text, 25, 150);
+        this.ctx.fillText(text, 25, 150);
+
+        this.ctx.restore();
+    }
+
+    /**
+    * Checks collisions between Sharkie and poison bottles.
+    *
+    * @returns {void}
+    */
+    checkPoisonBottleCollisions() {
+        this.poisonBottles.forEach(bottle => {
+            if (!bottle.collected &&
+                !this.character.isDead() &&
+                this.character.isColliding(bottle)) {
+                this.collectPoisonBottle(bottle);
+           }
+     });
+
+        this.poisonBottles = this.poisonBottles.filter(
+            bottle => !bottle.collected
+        );
+    }
+
+    /**
+    * Collects a bottle and restores one bubble ammunition charge.
+    *
+    * @param {PoisonBottle} bottle - Bottle to collect.
+    * @returns {void}
+    */
+    collectPoisonBottle(bottle) {
+        if (bottle.collected) return;
+
+        bottle.collect();
+        this.character.poison = Math.min(
+            this.character.maxPoison,
+            this.character.poison + 1
+        );
+    }
+
+    /**
+    * Stops all remaining poison bottle animations.
+    *
+    * @returns {void}
+    */
+    stopPoisonBottleIntervals() {
+        this.poisonBottles.forEach(bottle => bottle.stopIntervals());
     }
 }

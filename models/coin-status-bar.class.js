@@ -44,7 +44,7 @@ class CoinStatusBar extends DrawableObject {
             '40_  copia 4.png',
             '60_  copia 4.png',
             '80_  copia 4.png',
-            '100_  copia 4.png'
+            '100_ copia 4.png'
         ];
 
         filenames.forEach(filename => {
