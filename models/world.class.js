@@ -1,23 +1,24 @@
+
 /**
- * Manages the game world, collisions, camera, and enemies.
+ * Manages the game world, enemies, collectibles, and game state.
  */
 class World {
     /** @type {HTMLCanvasElement} Game canvas. */
     canvas;
 
-    /** @type {CanvasRenderingContext2D} Canvas drawing context. */
+    /** @type {CanvasRenderingContext2D} Drawing context. */
     ctx;
 
     /** @type {Character} Player character. */
     character;
 
-    /** @type {number} Total level width. */
+    /** @type {number} Total width of the game world. */
     levelWidth = 8640;
 
     /** @type {number} Horizontal camera offset. */
     cameraX = 0;
 
-    /** @type {BackgroundObject[]} Repeating background tiles. */
+    /** @type {BackgroundObject[]} Repeating background images. */
     backgrounds = Array.from({ length: 12 }, (_, index) =>
         new BackgroundObject(
             'assets/3. Background/Light/full.png',
@@ -34,13 +35,39 @@ class World {
     /** @type {Bubble[]} Active bubble projectiles. */
     bubbles = [];
 
+    /** @type {Coin[]} Collectible coins in the level. */
+    coins = [
+        new Coin(450, 180),
+        new Coin(750, 280),
+        new Coin(1100, 120),
+        new Coin(1550, 300),
+        new Coin(2000, 180),
+        new Coin(2450, 250),
+        new Coin(2900, 130),
+        new Coin(3350, 300),
+        new Coin(3800, 180),
+        new Coin(4250, 250),
+        new Coin(4700, 120),
+        new Coin(5150, 300),
+        new Coin(5600, 180),
+        new Coin(6050, 250),
+        new Coin(6500, 130),
+        new Coin(6950, 300),
+        new Coin(7400, 180),
+        new Coin(7850, 250),
+        new Coin(8300, 150)
+    ];
+
+    /** @type {number} Number of collected coins. */
+    collectedCoins = 0;
+
     /** @type {StatusBar} Sharkie's health bar. */
     statusBar = new StatusBar();
 
     /** @type {EnemySpawner} Random enemy generator. */
     enemySpawner;
 
-    /** @type {boolean} Whether the game-over screen was shown. */
+    /** @type {boolean} Whether the game-over screen is visible. */
     gameOver = false;
 
     /** @type {boolean} Whether the game loop is running. */
@@ -62,7 +89,7 @@ class World {
     }
 
     /**
-     * Runs the game loop.
+     * Runs the main game loop.
      *
      * @returns {void}
      */
@@ -77,7 +104,7 @@ class World {
     }
 
     /**
-     * Updates all gameplay systems.
+     * Updates movement, collisions, collectibles, and game state.
      *
      * @returns {void}
      */
@@ -88,6 +115,7 @@ class World {
         this.checkJellyfishCollisions();
         this.checkAttackCollisions();
         this.checkBubbleCollisions();
+        this.checkCoinCollisions();
         this.removeDefeatedEnemies();
         this.removeDefeatedJellyfish();
         this.removeOffscreenEnemies();
@@ -105,7 +133,7 @@ class World {
     }
 
     /**
-     * Draws world objects with the camera offset and the health bar.
+     * Draws the world and fixed screen elements.
      *
      * @returns {void}
      */
@@ -114,16 +142,19 @@ class World {
         this.ctx.translate(this.cameraX, 0);
         this.drawWorldObjects();
         this.ctx.restore();
+
         this.statusBar.draw(this.ctx);
+        this.drawCoinCounter();
     }
 
     /**
-     * Draws all objects inside the game world.
+     * Draws objects inside the scrolling game world.
      *
      * @returns {void}
      */
     drawWorldObjects() {
         this.addObjectsToMap(this.backgrounds);
+        this.addObjectsToMap(this.coins);
         this.addObjectsToMap(this.enemies);
         this.addObjectsToMap(this.jellyfish);
         this.addObjectsToMap(this.bubbles);
@@ -143,7 +174,7 @@ class World {
     }
 
     /**
-     * Draws each object from an array.
+     * Draws all objects in an array.
      *
      * @param {DrawableObject[]} objects - Objects to draw.
      * @returns {void}
@@ -153,7 +184,7 @@ class World {
     }
 
     /**
-     * Checks collisions between Sharkie and living puffer fish.
+     * Checks collisions with living puffer fish.
      *
      * @returns {void}
      */
@@ -166,33 +197,34 @@ class World {
     }
 
     /**
-     * Checks whether a puffer fish can damage Sharkie.
+     * Checks whether a puffer fish touches Sharkie.
      *
      * @param {PufferFish} enemy - Enemy to check.
-     * @returns {boolean} Whether the enemy touches Sharkie.
+     * @returns {boolean} True when the enemy can damage Sharkie.
      */
     canEnemyDamageCharacter(enemy) {
         return !enemy.isDead() && this.character.isColliding(enemy);
     }
 
     /**
-     * Checks collisions between Sharkie and living jellyfish.
+     * Checks collisions with living jellyfish.
      *
      * @returns {void}
      */
     checkJellyfishCollisions() {
         this.jellyfish.forEach(jellyfish => {
-            if (!jellyfish.isDead() && this.character.isColliding(jellyfish)) {
+            if (!jellyfish.isDead() &&
+                this.character.isColliding(jellyfish)) {
                 this.damageCharacter(20, 'electric');
             }
         });
     }
 
     /**
-     * Applies damage to Sharkie and updates the health bar.
+     * Applies damage and updates Sharkie's health bar.
      *
      * @param {number} damage - Damage amount.
-     * @param {string} type - Damage animation type.
+     * @param {string} type - Damage type.
      * @returns {void}
      */
     damageCharacter(damage = 20, type = 'poison') {
@@ -214,10 +246,10 @@ class World {
     }
 
     /**
-     * Checks whether the fin-slap hitbox overlaps a puffer fish.
+     * Checks whether Sharkie's fin slap hits a puffer fish.
      *
      * @param {PufferFish} enemy - Enemy to check.
-     * @returns {boolean} Whether the attack hits the enemy.
+     * @returns {boolean} True when the attack overlaps the enemy.
      */
     isAttackHittingEnemy(enemy) {
         if (enemy.isDead()) return false;
@@ -264,6 +296,34 @@ class World {
     }
 
     /**
+     * Checks whether Sharkie touches collectible coins.
+     *
+     * @returns {void}
+     */
+    checkCoinCollisions() {
+        this.coins.forEach(coin => {
+            if (this.character.isColliding(coin)) {
+                this.collectCoin(coin);
+            }
+        });
+
+        this.coins = this.coins.filter(coin => !coin.collected);
+    }
+
+    /**
+     * Collects a coin and increases the coin counter.
+     *
+     * @param {Coin} coin - Coin to collect.
+     * @returns {void}
+     */
+    collectCoin(coin) {
+        if (coin.collected || this.character.isDead()) return;
+
+        coin.collect();
+        this.collectedCoins++;
+    }
+
+    /**
      * Removes puffer fish after they fall below the canvas.
      *
      * @returns {void}
@@ -292,7 +352,7 @@ class World {
     }
 
     /**
-     * Removes living enemies that have left the left world boundary.
+     * Removes enemies that have moved far behind the camera.
      *
      * @returns {void}
      */
@@ -307,11 +367,11 @@ class World {
     }
 
     /**
-    * Stops enemies that have moved far behind the visible camera area.
-    *
-    * @param {MovableObject} enemy - Enemy to check.
-    * @returns {boolean} Whether the enemy should remain active.
-    */
+     * Checks whether an enemy should remain active.
+     *
+     * @param {MovableObject} enemy - Enemy to check.
+     * @returns {boolean} True when the enemy should remain.
+     */
     keepEnemyInWorld(enemy) {
         if (enemy.isDead()) return true;
 
@@ -325,7 +385,7 @@ class World {
     }
 
     /**
-     * Keeps the camera following Sharkie within level boundaries.
+     * Updates the horizontal camera position.
      *
      * @returns {void}
      */
@@ -335,6 +395,19 @@ class World {
 
         this.cameraX = Math.min(0, desiredCameraX);
         this.cameraX = Math.max(minCameraX, this.cameraX);
+    }
+
+    /**
+     * Draws the collected coin count on the canvas.
+     *
+     * @returns {void}
+     */
+    drawCoinCounter() {
+        this.ctx.save();
+        this.ctx.font = 'bold 24px Arial';
+        this.ctx.fillStyle = 'white';
+        this.ctx.fillText(`Coins: ${this.collectedCoins}`, 25, 100);
+        this.ctx.restore();
     }
 
     /**
@@ -348,7 +421,7 @@ class World {
     }
 
     /**
-     * Displays the game-over overlay once.
+     * Displays the game-over screen once.
      *
      * @returns {void}
      */
@@ -363,7 +436,7 @@ class World {
     }
 
     /**
-     * Stops the game and all active intervals.
+     * Stops the game and all active timers.
      *
      * @returns {void}
      */
@@ -373,6 +446,7 @@ class World {
         this.character.stopIntervals();
         this.stopEnemyIntervals();
         this.stopJellyfishIntervals();
+        this.stopCoinIntervals();
     }
 
     /**
@@ -391,5 +465,14 @@ class World {
      */
     stopJellyfishIntervals() {
         this.jellyfish.forEach(jellyfish => jellyfish.stopIntervals());
+    }
+
+    /**
+     * Stops all remaining coin animation intervals.
+     *
+     * @returns {void}
+     */
+    stopCoinIntervals() {
+        this.coins.forEach(coin => coin.stopIntervals());
     }
 }
