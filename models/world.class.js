@@ -117,18 +117,26 @@ class World {
     */
     gameState = 'playing';
 
-    /**
-    * Current phase of the boss introduction.
-    *
-    * @type {'playing'|'boss-pan'|'boss-intro'|'boss-return'|'boss-fight'}
-    */
-    gameState = 'playing';
+    /** @type {number} Time between poison bottle spawns in milliseconds. */
+    bossPoisonSpawnInterval = 8000;
+
+    /** @type {number} Timestamp of the last boss arena poison spawn. */
+    lastBossPoisonSpawn = 0;
+
+    /** @type {number} Maximum number of spawned poison bottles in the arena. */
+    maxBossPoisonBottles = 3;
+
+    /** @type {PoisonBottle[]} Poison bottles spawned during the boss fight. */
+    bossPoisonBottles = [];
 
     /** @type {number} Camera movement speed in pixels per frame. */
     cutsceneCameraSpeed = 12;
 
     /** @type {number} Distance at which the camera has reached its target. */
     cameraArrivalTolerance = 12;
+
+    /** @type {BossProjectile[]} Active boss projectiles. */
+bossProjectiles = [];
 
     /**
      * Creates a new game world.
@@ -186,6 +194,7 @@ class World {
         this.keepCharacterInsideBossArena();
 
         this.updateBubbles();
+        this.updateBossPoisonSpawning();
         this.checkCollisions();
         this.checkJellyfishCollisions();
         this.checkAttackCollisions();
@@ -194,6 +203,12 @@ class World {
             this.startBossDeathCutscene();
             return;
         }
+
+        this.updateBossMovement();
+this.updateBossRangedAttack();
+this.updateBossAttack();
+this.checkBossAttackCollision();
+this.updateBossProjectiles();
         this.checkCoinCollisions();
         this.checkPoisonBottleCollisions();
         this.removeDefeatedEnemies();
@@ -242,10 +257,11 @@ class World {
         this.addObjectsToMap(this.enemies);
         this.addObjectsToMap(this.jellyfish);
         this.addObjectsToMap(this.bubbles);
-        this.endboss.draw(this.ctx);
+        this.drawEndboss();
         this.character.draw(this.ctx);
         this.drawHitboxes();
         this.addObjectsToMap(this.poisonBottles);
+        this.addObjectsToMap(this.bossProjectiles);
     }
 
     /**
@@ -847,28 +863,29 @@ returnCameraToCharacter() {
  */
 finishBossCutscene() {
     this.gameState = 'boss-fight';
-
     this.character.controlsLocked = false;
     this.character.currentImage = 0;
-}
 
-/**
- * Moves the camera smoothly toward a horizontal target.
- *
- * @param {number} targetX - Desired camera offset.
- * @returns {void}
- */
-moveCameraTowards(targetX) {
-    const difference = targetX - this.cameraX;
-
-    if (Math.abs(difference) <= this.cutsceneCameraSpeed) {
-        this.cameraX = targetX;
-        return;
+    this.startBossPoisonSpawning();
     }
 
-    this.cameraX += Math.sign(difference) *
-        this.cutsceneCameraSpeed;
-}
+    /**
+    * Moves the camera smoothly toward a horizontal target.
+    *
+    * @param {number} targetX - Desired camera offset.
+    * @returns {void}
+    */
+    moveCameraTowards(targetX) {
+        const difference = targetX - this.cameraX;
+
+        if (Math.abs(difference) <= this.cutsceneCameraSpeed) {
+            this.cameraX = targetX;
+            return;
+        }
+
+        this.cameraX += Math.sign(difference) *
+            this.cutsceneCameraSpeed;
+    }
 
 /**
  * Checks whether the camera has reached its target.
@@ -948,6 +965,7 @@ startBossDeathCutscene() {
     this.character.bubbleKeyLocked = true;
 
     this.bubbles = [];
+    this.bossProjectiles = [];
     this.enemySpawner.stop();
 }
 
@@ -995,4 +1013,215 @@ startBossDeathCutscene() {
             winScreen.classList.add('visible');
         }
     }
+
+    /**
+    * Checks whether a new poison bottle should spawn in the boss arena.
+    *
+    * @returns {void}
+    */
+    updateBossPoisonSpawning() {
+        if (this.gameState !== 'boss-fight') return;
+
+        const now = Date.now();
+
+        if (this.lastBossPoisonSpawn === 0) {
+            this.lastBossPoisonSpawn = now;
+            return;
+        }
+
+        if (now - this.lastBossPoisonSpawn < this.bossPoisonSpawnInterval) {
+            return;
+        }
+
+        this.lastBossPoisonSpawn = now;
+        this.spawnBossPoisonBottle();
+    }
+
+    /**
+    * Creates a poison bottle at a random position in the boss arena.
+    *
+    * @returns {void}
+    */
+    spawnBossPoisonBottle() {
+        this.removeCollectedBossPoisonBottles();
+
+        if (this.bossPoisonBottles.length >= this.maxBossPoisonBottles) {
+            return;
+        }
+
+        const minX = this.bossArenaStartX + 250;
+        const maxX = this.endboss.x - 150;
+
+        const x = minX + Math.random() * (maxX - minX);
+        const y = 100 + Math.random() * 250;
+
+        const bottle = new PoisonBottle(x, y);
+
+        this.poisonBottles.push(bottle);
+        this.bossPoisonBottles.push(bottle);
+    }
+
+    /**
+    * Removes collected bottles from the boss spawn tracking array.
+    *
+    * @returns {void}
+    */
+    removeCollectedBossPoisonBottles() {
+        this.bossPoisonBottles = this.bossPoisonBottles.filter(
+            bottle => !bottle.collected
+        );
+    }
+
+    /**
+    * Resets the poison bottle spawn timer when the boss fight begins.
+    *
+    * @returns {void}
+    */
+    startBossPoisonSpawning() {
+        this.lastBossPoisonSpawn = Date.now();
+    }
+
+/**
+ * Triggers boss attacks when Sharkie is within attack range.
+ *
+ * @returns {void}
+ */
+updateBossAttack() {
+    if (this.gameState !== 'boss-fight') return;
+
+    const boss = this.endboss;
+    const character = this.character;
+
+    const bossCenter = boss.x + boss.width / 2;
+    const characterCenter = character.x + character.width / 2;
+    const distance = Math.abs(characterCenter - bossCenter);
+
+    if (distance > boss.attackDistance + 100) return;
+
+    boss.tryAttack();
+}
+
+/**
+ * Checks whether the active boss attack hits Sharkie.
+ *
+ * @returns {void}
+ */
+checkBossAttackCollision() {
+    if (this.gameState !== 'boss-fight') return;
+    if (!this.endboss.isAttackActive()) return;
+    if (this.character.isDead()) return;
+
+    const attack = this.endboss.getAttackHitbox();
+
+    const characterLeft = this.character.getLeft();
+    const characterRight = this.character.getRight();
+    const characterTop = this.character.getTop();
+    const characterBottom = this.character.getBottom();
+
+    const isHitting =
+        attack.x < characterRight &&
+        attack.x + attack.width > characterLeft &&
+        attack.y < characterBottom &&
+        attack.y + attack.height > characterTop;
+
+    if (!isHitting) return;
+
+    this.endboss.attackHasHit = true;
+    this.damageCharacter(20);
+}
+
+/**
+ * Updates boss movement during the active boss fight.
+ *
+ * @returns {void}
+ */
+updateBossMovement() {
+    if (this.gameState !== 'boss-fight') return;
+
+    this.endboss.moveVertically();
+    this.endboss.moveTowardsCharacter(this.character);
+}
+
+
+
+/**
+ * Spawns a ranged projectile when the boss is ready.
+ *
+ * @returns {void}
+ */
+updateBossRangedAttack() {
+    if (this.gameState !== 'boss-fight') return;
+
+    const boss = this.endboss;
+
+    if (!boss.canUseRangedAttack()) return;
+
+    const now = Date.now();
+    boss.lastRangedAttackTime = now;
+
+    const startX = boss.otherDirection
+        ? boss.x + boss.width - 30
+        : boss.x - 30;
+
+    const startY = boss.y + 190;
+
+    const targetX = this.character.x + this.character.width / 2;
+    const targetY = this.character.y + this.character.height / 2;
+
+    this.bossProjectiles.push(
+        new BossProjectile(startX, startY, targetX, targetY)
+    );
+}
+
+/**
+ * Moves boss projectiles and checks collisions with Sharkie.
+ *
+ * @returns {void}
+ */
+updateBossProjectiles() {
+    this.bossProjectiles.forEach(projectile => {
+        projectile.move();
+        this.checkBossProjectileCollision(projectile);
+    });
+
+    this.bossProjectiles = this.bossProjectiles.filter(projectile => {
+        return !projectile.hasHit &&
+            projectile.x > this.bossArenaStartX - 100 &&
+            projectile.x < this.levelWidth + 100 &&
+            projectile.y > -100 &&
+            projectile.y < this.canvas.height + 100;
+    });
+}
+
+/**
+ * Checks whether a boss projectile hits Sharkie.
+ *
+ * @param {BossProjectile} projectile - Projectile to check.
+ * @returns {void}
+ */
+checkBossProjectileCollision(projectile) {
+    if (projectile.hasHit || this.character.isDead()) return;
+
+    const character = this.character;
+
+    const isHitting =
+        projectile.x < character.getRight() &&
+        projectile.x + projectile.width > character.getLeft() &&
+        projectile.y < character.getBottom() &&
+        projectile.y + projectile.height > character.getTop();
+
+    if (!isHitting) return;
+
+    projectile.hasHit = true;
+    this.damageCharacter(projectile.damage);
+}
+
+/**
+ * Draws the boss using its current facing direction.
+ *
+ * @returns {void}
+ */
+drawEndboss() {
+    this.endboss.draw(this.ctx);
+}
 }
