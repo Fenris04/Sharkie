@@ -1,7 +1,9 @@
+
 /**
  * Represents an animated collectible coin.
  */
 class Coin extends MovableObject {
+
     /** @type {number} Coin width. */
     width = 50;
 
@@ -37,7 +39,7 @@ class Coin extends MovableObject {
     }
 
     /**
-     * Loads all five coin animation frames.
+     * Loads all four coin animation frames.
      *
      * @returns {void}
      */
@@ -58,10 +60,20 @@ class Coin extends MovableObject {
      */
     animate() {
         this.animationInterval = setInterval(() => {
-            const index = this.currentImage % this.coinImages.length;
-            this.img = this.coinImages[index];
-            this.currentImage++;
+            this.updateAnimation();
         }, 150);
+    }
+
+    /**
+     * Displays the next coin animation frame.
+     *
+     * @returns {void}
+     */
+    updateAnimation() {
+        const index = this.currentImage % this.coinImages.length;
+
+        this.img = this.coinImages[index];
+        this.currentImage++;
     }
 
     /**

@@ -2,6 +2,7 @@
  * Represents a projectile fired by the final boss.
  */
 class BossProjectile extends MovableObject {
+
     /** @type {number} Projectile width. */
     width = 48;
 
@@ -21,7 +22,7 @@ class BossProjectile extends MovableObject {
     damage = 15;
 
     /**
-     * Creates a projectile aimed at Sharkie's current position.
+     * Creates a projectile aimed at Sharkie's position.
      *
      * @param {number} x - Starting horizontal position.
      * @param {number} y - Starting vertical position.
@@ -30,16 +31,14 @@ class BossProjectile extends MovableObject {
      */
     constructor(x, y, targetX, targetY) {
         super();
-
         this.x = x;
         this.y = y;
-
         this.setDirection(targetX, targetY);
         this.createImage();
     }
 
     /**
-     * Calculates a normalized movement direction toward the target.
+     * Calculates the projectile's movement direction.
      *
      * @param {number} targetX - Target horizontal position.
      * @param {number} targetY - Target vertical position.
@@ -55,39 +54,68 @@ class BossProjectile extends MovableObject {
         this.speedY = dy / distance * speed;
     }
 
-   /**
- * Creates a glowing green projectile image.
- *
- * @returns {void}
- */
-createImage() {
-    const canvas = document.createElement('canvas');
-    canvas.width = 48;
-    canvas.height = 48;
+    /**
+     * Creates a glowing green projectile image.
+     *
+     * @returns {void}
+     */
+    createImage() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 48;
+        canvas.height = 48;
 
-    const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d');
+        const gradient = this.createGradient(ctx);
 
-    const gradient = ctx.createRadialGradient(
-        20, 17, 3,
-        24, 24, 23
-    );
+        this.drawProjectile(ctx, gradient);
+        this.setProjectileImage(canvas);
+    }
 
-    gradient.addColorStop(0, '#ffffff');
-    gradient.addColorStop(0.3, '#b4ff8a');
-    gradient.addColorStop(0.75, '#46c93c');
-    gradient.addColorStop(1, '#166b2a');
+    /**
+     * Creates the projectile's radial color gradient.
+     *
+     * @param {CanvasRenderingContext2D} ctx - Drawing context.
+     * @returns {CanvasGradient} Projectile gradient.
+     */
+    createGradient(ctx) {
+        const gradient = ctx.createRadialGradient(
+            20, 17, 3,
+            24, 24, 23
+        );
 
-    ctx.fillStyle = gradient;
-    ctx.beginPath();
-    ctx.arc(24, 24, 22, 0, Math.PI * 2);
-    ctx.fill();
+        gradient.addColorStop(0, '#ffffff');
+        gradient.addColorStop(0.3, '#b4ff8a');
+        gradient.addColorStop(0.75, '#46c93c');
+        gradient.addColorStop(1, '#166b2a');
 
-    const image = new Image();
+        return gradient;
+    }
 
-    image.src = canvas.toDataURL('image/png');
+    /**
+     * Draws the projectile on its temporary canvas.
+     *
+     * @param {CanvasRenderingContext2D} ctx - Drawing context.
+     * @param {CanvasGradient} gradient - Projectile gradient.
+     * @returns {void}
+     */
+    drawProjectile(ctx, gradient) {
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(24, 24, 22, 0, Math.PI * 2);
+        ctx.fill();
+    }
 
-    this.img = image;
-}
+    /**
+     * Converts the canvas into the projectile image.
+     *
+     * @param {HTMLCanvasElement} canvas - Temporary canvas.
+     * @returns {void}
+     */
+    setProjectileImage(canvas) {
+        const image = new Image();
+        image.src = canvas.toDataURL('image/png');
+        this.img = image;
+    }
 
     /**
      * Moves the projectile through the game world.

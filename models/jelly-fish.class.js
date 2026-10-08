@@ -2,16 +2,23 @@
  * Represents a purple jellyfish enemy.
  */
 class JellyFish extends MovableObject {
+    /** @type {number} Width of the jellyfish. */
     width = 90;
+    /** @type {number} Height of the jellyfish. */
     height = 110;
+    /** @type {number} Movement speed. */
     speed = 0.4;
 
     /** @type {number} Current swimming animation frame. */
     currentImage = 0;
 
+    /** @type {number} Top collision offset. */
     offsetTop = 15;
+    /** @type {number} Right collision offset. */
     offsetRight = 15;
+    /** @type {number} Bottom collision offset. */
     offsetBottom = 15;
+    /** @type {number} Left collision offset. */
     offsetLeft = 15;
 
     /** @type {HTMLImageElement[]} Swimming animation frames. */

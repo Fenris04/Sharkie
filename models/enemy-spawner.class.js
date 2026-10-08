@@ -1,3 +1,4 @@
+
 /**
  * Creates enemies at random intervals near the visible game area.
  */
@@ -56,17 +57,27 @@ class EnemySpawner {
 
         const delay = 500 + Math.random() * 700;
 
-        this.spawnTimeout = setTimeout(() => {
-            if (!this.running) return;
+        this.spawnTimeout = setTimeout(
+            () => this.handleScheduledSpawn(),
+            delay
+        );
+    }
 
-            if (this.hasReachedBossArea()) {
-                this.stop();
-                return;
-            }
+    /**
+     * Handles a scheduled spawn and schedules the next one.
+     *
+     * @returns {void}
+     */
+    handleScheduledSpawn() {
+        if (!this.running) return;
 
-            this.spawnEnemy();
-            this.scheduleNextSpawn();
-        }, delay);
+        if (this.hasReachedBossArea()) {
+            this.stop();
+            return;
+        }
+
+        this.spawnEnemy();
+        this.scheduleNextSpawn();
     }
 
     /**
@@ -89,6 +100,16 @@ class EnemySpawner {
             return;
         }
 
+        this.spawnEnemyAtPosition(x);
+    }
+
+    /**
+     * Creates an enemy at an available vertical position.
+     *
+     * @param {number} x - Horizontal spawn position.
+     * @returns {void}
+     */
+    spawnEnemyAtPosition(x) {
         const y = this.findFreeSpawnY(x);
 
         if (y === null) return;

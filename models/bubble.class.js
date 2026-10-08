@@ -1,9 +1,16 @@
+
 /**
  * Represents a bubble projectile fired by Sharkie.
  */
 class Bubble extends MovableObject {
+
+    /** @type {number} Width of the bubble. */
     width = 60;
+
+    /** @type {number} Height of the bubble. */
     height = 60;
+
+    /** @type {number} Movement speed of the bubble. */
     speed = 7;
 
     /** @type {boolean} Whether the bubble has hit an enemy. */

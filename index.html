@@ -12,6 +12,9 @@
     <script src="models/background-object.class.js" defer></script>
 
     <script src="models/status-bar.class.js" defer></script>
+
+    <script src="models/character-base.class.js" defer></script>
+    <script src="models/character-animation.class.js" defer></script>
     <script src="models/character.class.js" defer></script>
 
     <script src="models/puffer-fish.class.js" defer></script>
@@ -25,9 +28,18 @@
     <script src="models/poison-bottle.class.js" defer></script>
     <script src="models/poison-status-bar.class.js" defer></script>
 
+    <script src="models/endboss-base.class.js" defer></script>
+    <script src="models/endboss-animation.class.js" defer></script>
     <script src="models/endboss.class.js" defer></script>
     <script src="models/boss-projectile.class.js" defer></script>
 
+    <script src="models/world-base.class.js" defer></script>
+    <script src="models/world-render.class.js" defer></script>
+    <script src="models/world-collision.class.js" defer></script>
+    <script src="models/world-collectibles.class.js" defer></script>
+    <script src="models/world-boss.class.js" defer></script>
+    <script src="models/world-boss-cutscene.class.js" defer></script>
+    <script src="models/world-boss-poison.class.js" defer></script>
     <script src="models/world.class.js" defer></script>
 
     <script src="js/keyboard.js" defer></script>
@@ -47,11 +59,7 @@
           alt="Game Over"
         />
 
-        <button
-          id="restart-button"
-          class="restart-button"
-          type="button"
-        >
+        <button id="restart-button" class="restart-button" type="button">
           Try again
         </button>
       </div>
@@ -59,11 +67,7 @@
       <div id="you-win-screen" class="you-win-screen">
         <h2 class="you-win-title">YOU WIN!</h2>
 
-        <button
-          id="win-restart-button"
-          class="restart-button"
-          type="button"
-        >
+        <button id="win-restart-button" class="restart-button" type="button">
           Play again
         </button>
       </div>

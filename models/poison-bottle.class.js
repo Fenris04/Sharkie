@@ -3,6 +3,7 @@
  * Represents an animated collectible poison bottle.
  */
 class PoisonBottle extends MovableObject {
+
     /** @type {number} Bottle width. */
     width = 55;
 
@@ -45,6 +46,7 @@ class PoisonBottle extends MovableObject {
     loadBottleImages() {
         for (let i = 1; i <= 8; i++) {
             const image = new Image();
+
             image.src = `assets/4. Marcadores/Posión/Animada/${i}.png`;
             this.bottleImages.push(image);
         }
@@ -59,10 +61,20 @@ class PoisonBottle extends MovableObject {
      */
     animate() {
         this.animationInterval = setInterval(() => {
-            const index = this.currentImage % this.bottleImages.length;
-            this.img = this.bottleImages[index];
-            this.currentImage++;
+            this.updateAnimation();
         }, 150);
+    }
+
+    /**
+     * Displays the next poison bottle animation frame.
+     *
+     * @returns {void}
+     */
+    updateAnimation() {
+        const index = this.currentImage % this.bottleImages.length;
+
+        this.img = this.bottleImages[index];
+        this.currentImage++;
     }
 
     /**
