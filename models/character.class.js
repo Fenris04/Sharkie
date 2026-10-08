@@ -73,6 +73,11 @@ class Character extends MovableObject {
     /** @type {number} Left offset of Sharkie's collision box. */
     offsetLeft = 65;
 
+    /** @type {HTMLImageElement[]} Images for the electric-shock animation. */
+    electricHurtImages = [];
+
+    /** @type {'poison'|'electric'} Type of the last received damage. */
+    damageType = 'poison';
 
     /**
      * Creates Sharkie and loads all required animations.
@@ -89,6 +94,7 @@ class Character extends MovableObject {
         this.loadIdleImages();
         this.loadSwimImages();
         this.loadHurtImages();
+        this.loadElectricHurtImages();
         this.loadDeadImages();
         this.loadAttackImages();
 
@@ -231,7 +237,7 @@ class Character extends MovableObject {
         if (this.isDead()) {
             this.playDeathAnimation();
         } else if (this.isHurt()) {
-            this.playAnimation(this.hurtImages);
+            this.playHurtAnimation();
         } else if (this.isAttacking) {
             this.playAttackAnimation();
         } else if (this.isMoving()) {
@@ -419,17 +425,19 @@ class Character extends MovableObject {
 
 
     /**
-     * Reduces Sharkie's health when the hit cooldown has expired.
-     *
-     * @param {number} damage - Amount of health to remove.
-     * @returns {void}
-     */
-    hit(damage) {
+    * Reduces Sharkie's health and stores the received damage type.
+    *
+    * @param {number} damage - Amount of health to remove.
+    * @param {'poison'|'electric'} [type='poison'] - Type of damage.
+    * @returns {void}
+    */
+    hit(damage, type = 'poison') {
         if (!this.canReceiveDamage() || this.isDead()) {
             return;
         }
 
         this.energy = Math.max(0, this.energy - damage);
+        this.damageType = type;
         this.lastHit = Date.now();
         this.isAttacking = false;
         this.currentImage = 0;
@@ -531,6 +539,34 @@ class Character extends MovableObject {
         return this.isAttacking &&
             this.currentImage >= firstHitFrame &&
             this.currentImage <= lastHitFrame;
+    }
+
+
+    /**
+    * Loads Sharkie's electric-shock hurt animation frames.
+    *
+    * @returns {void}
+    */
+    loadElectricHurtImages() {
+        for (let i = 1; i <= 3; i++) {
+            const image = new Image();
+            image.src = `assets/1.Sharkie/5.Hurt/2.Electric shock/${i}.png`;
+            this.electricHurtImages.push(image);
+        }
+    }
+
+    /**
+    * Plays the hurt animation matching the last damage type.
+    *
+    * @returns {void}
+    */
+    playHurtAnimation() {
+        if (this.damageType === 'electric') {
+            this.playAnimation(this.electricHurtImages);
+            return;
+        }
+
+        this.playAnimation(this.hurtImages);
     }
 
 }

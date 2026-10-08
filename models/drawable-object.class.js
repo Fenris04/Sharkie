@@ -40,6 +40,10 @@ class DrawableObject {
     * @returns {void}
     */
     drawNormal(ctx) {
+      if (!this.img?.complete || this.img.naturalWidth === 0) {
+        return;
+      }
+
       ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
     }
 
@@ -51,6 +55,10 @@ class DrawableObject {
     * @returns {void}
     */
     drawFlipped(ctx) {
+      if (!this.img?.complete || this.img.naturalWidth === 0) {
+        return;
+      }  
+
       ctx.save();
       ctx.translate(this.x + this.width, this.y);
       ctx.scale(-1, 1);

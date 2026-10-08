@@ -42,6 +42,12 @@ class World {
         new PufferFish(1800, 180)
     ];
 
+    /** @type {JellyFish[]} Jellyfish currently placed in the game world. */
+    jellyfish = [
+        new JellyFish(1100, 180),
+        new JellyFish(1650, 260)
+    ];
+
     /** @type {StatusBar} Displays Sharkie's current health. */
     statusBar = new StatusBar();
 
@@ -92,6 +98,7 @@ class World {
     update() {
         this.character.move();
         this.checkCollisions();
+        this.checkJellyfishCollisions();
         this.checkAttackCollisions();
         this.removeDefeatedEnemies();
         this.updateCamera();
@@ -139,6 +146,8 @@ class World {
     drawWorldObjects() {
         this.addObjectsToMap(this.backgrounds);
         this.addObjectsToMap(this.enemies);
+        this.addObjectsToMap(this.jellyfish);
+
         this.character.draw(this.ctx);
         this.drawHitboxes();
     }
@@ -158,15 +167,19 @@ class World {
 
 
     /**
-     * Draws the collision hitboxes for development purposes.
-     *
-     * @returns {void}
-     */
+    * Draws collision hitboxes for development purposes.
+    *
+    * @returns {void}
+    */
     drawHitboxes() {
         this.character.drawHitbox(this.ctx);
 
         this.enemies.forEach(enemy => {
             enemy.drawHitbox(this.ctx);
+        });
+
+        this.jellyfish.forEach(jellyfish => {
+            jellyfish.drawHitbox(this.ctx);
         });
     }
 
@@ -198,12 +211,14 @@ class World {
 
 
     /**
-     * Damages Sharkie and updates the health status bar.
-     *
-     * @returns {void}
-     */
-    damageCharacter() {
-        this.character.hit(20);
+    * Damages Sharkie and updates the health status bar.
+    *
+    * @param {number} [damage=20] - Amount of damage.
+    * @param {'poison'|'electric'} [type='poison'] - Damage type.
+    * @returns {void}
+    */
+    damageCharacter(damage = 20, type = 'poison') {
+        this.character.hit(damage, type);
         this.statusBar.setPercentage(this.character.energy);
     }
 
@@ -264,6 +279,7 @@ stop() {
     this.running = false;
     this.character.stopIntervals();
     this.stopEnemyIntervals();
+    this.stopJellyfishIntervals();
 }
 
 
@@ -326,4 +342,32 @@ checkAttackCollisions() {
             return !enemy.isDead() || enemy.y < 480;
         });
     }
+
+ 
+    /**
+    * Stops all running jellyfish intervals.
+    *
+    * @returns {void}
+    */
+    stopJellyfishIntervals() {
+        this.jellyfish.forEach(jellyfish => {
+            jellyfish.stopIntervals();
+        });
+    }
+
+    /**
+    * Checks whether Sharkie collides with a jellyfish.
+    *
+    * @returns {void}
+    */
+    checkJellyfishCollisions() {
+        this.jellyfish.forEach(jellyfish => {
+            if (this.character.isColliding(jellyfish)) {
+                this.damageCharacter(20, 'electric');
+            }
+        });
+    }
+ 
+    
+
 }
