@@ -71,14 +71,23 @@ class Endboss extends MovableObject {
     /** @type {number} Current attack animation frame. */
     attackImageIndex = 0;
 
-    /** @type {number} Timestamp of the last attack. */
+    /** @type {number} Timestamp of the last melee attack. */
     lastAttackTime = 0;
 
-    /** @type {number} Time between attacks in milliseconds. */
+    /** @type {number} Time between melee attacks in milliseconds. */
     attackCooldown = 3000;
 
     /** @type {boolean} Whether Sharkie was already hit by the current attack. */
     attackHasHit = false;
+
+    /** @type {'melee'|'ranged'|null} Type of the current attack. */
+    attackType = null;
+
+    /** @type {boolean} Whether a ranged projectile is ready to fire. */
+    rangedProjectileReady = false;
+
+    /** @type {number} Attack frame that releases the projectile. */
+    rangedReleaseFrame = 4;
 
     /** @type {boolean} Whether the death animation has started. */
     deathAnimationStarted = false;
@@ -93,34 +102,34 @@ class Endboss extends MovableObject {
     lastDeathFrameTime = 0;
 
     /** @type {number} Vertical movement speed per frame. */
-verticalSpeed = 0.6;
+    verticalSpeed = 0.6;
 
-/** @type {number} Current vertical movement direction. */
-verticalDirection = 1;
+    /** @type {number} Current vertical movement direction. */
+    verticalDirection = 1;
 
-/** @type {number} Upper movement boundary. */
-minY = 20;
+    /** @type {number} Upper movement boundary. */
+    minY = 20;
 
-/** @type {number} Lower movement boundary. */
-  maxY = 100;
+    /** @type {number} Lower movement boundary. */
+    maxY = 100;
 
-  /** @type {number} Horizontal movement speed per frame. */
-horizontalSpeed = 0.8;
+    /** @type {number} Horizontal movement speed per frame. */
+    horizontalSpeed = 0.8;
 
-/** @type {number} Minimum horizontal distance from Sharkie. */
-attackDistance = 250;
+    /** @type {number} Minimum horizontal distance from Sharkie. */
+    attackDistance = 250;
 
-/** @type {number} Left boundary of the boss movement area. */
-minX = 7700;
+    /** @type {number} Left boundary of the boss movement area. */
+    minX = 7700;
 
-/** @type {number} Right boundary of the boss movement area. */
-maxX = 9400;
+    /** @type {number} Right boundary of the boss movement area. */
+    maxX = 9400;
 
-/** @type {number} Time between ranged attacks in milliseconds. */
-rangedAttackCooldown = 4000;
+    /** @type {number} Time between ranged attacks in milliseconds. */
+    rangedAttackCooldown = 4000;
 
-/** @type {number} Timestamp of the last ranged attack. */
-lastRangedAttackTime = 0;
+    /** @type {number} Timestamp of the last ranged attack. */
+    lastRangedAttackTime = 0;
 
     /**
      * Creates the final boss and loads its animations.
@@ -243,7 +252,7 @@ lastRangedAttackTime = 0;
     }
 
     /**
-     * Plays the introduction once.
+     * Plays the introduction exactly once.
      *
      * @returns {void}
      */
@@ -290,7 +299,7 @@ lastRangedAttackTime = 0;
     }
 
     /**
-     * Starts an attack when the cooldown has elapsed.
+     * Starts a melee attack when the boss is ready.
      *
      * @returns {void}
      */
@@ -298,15 +307,17 @@ lastRangedAttackTime = 0;
         if (!this.canStartAttack()) return;
 
         this.isAttacking = true;
+        this.attackType = 'melee';
         this.attackImageIndex = 0;
         this.attackHasHit = false;
+        this.rangedProjectileReady = false;
         this.lastAttackTime = Date.now();
     }
 
     /**
-     * Checks whether the boss can start a new attack.
+     * Checks whether the boss can start a melee attack.
      *
-     * @returns {boolean} True when another attack can begin.
+     * @returns {boolean} True when another melee attack can begin.
      */
     canStartAttack() {
         return this.activated &&
@@ -319,7 +330,40 @@ lastRangedAttackTime = 0;
     }
 
     /**
-     * Plays the attack animation once.
+     * Starts the ranged attack animation without firing immediately.
+     *
+     * @returns {void}
+     */
+    startRangedAttack() {
+        if (!this.canUseRangedAttack()) return;
+
+        this.isAttacking = true;
+        this.attackType = 'ranged';
+        this.attackImageIndex = 0;
+        this.attackHasHit = false;
+        this.rangedProjectileReady = false;
+        this.lastRangedAttackTime = Date.now();
+    }
+
+    /**
+     * Checks whether the boss can start a ranged attack.
+     *
+     * @returns {boolean} True when a ranged attack is available.
+     */
+    canUseRangedAttack() {
+        return this.activated &&
+            this.introductionFinished &&
+            !this.isDead() &&
+            !this.isHurt &&
+            !this.isAttacking &&
+            !this.deathAnimationStarted &&
+            Date.now() - this.lastRangedAttackTime >=
+                this.rangedAttackCooldown;
+    }
+
+    /**
+     * Plays the attack animation and prepares the ranged projectile
+     * when the fourth frame is displayed.
      *
      * @returns {void}
      */
@@ -329,45 +373,74 @@ lastRangedAttackTime = 0;
         this.showImage(path);
         this.attackImageIndex++;
 
+        if (
+            this.attackType === 'ranged' &&
+            this.attackImageIndex === this.rangedReleaseFrame
+        ) {
+            this.rangedProjectileReady = true;
+        }
+
         if (this.attackImageIndex >= this.IMAGES_ATTACK.length) {
             this.isAttacking = false;
+            this.attackType = null;
             this.attackImageIndex = 0;
             this.currentImage = 0;
         }
     }
 
     /**
-     * Checks whether the boss attack is in its damaging phase.
+     * Checks whether the melee attack is in its damaging phase.
      *
-     * @returns {boolean} True while the attack can cause damage.
+     * @returns {boolean} True when the melee attack can cause damage.
      */
     isAttackActive() {
         return this.isAttacking &&
+            this.attackType === 'melee' &&
             this.attackImageIndex >= 3 &&
             this.attackImageIndex <= 5 &&
             !this.attackHasHit;
     }
 
-  /**
- * Returns the attack hitbox on the side the boss is facing.
- *
- * @returns {{x: number, y: number, width: number, height: number}}
- */
-getAttackHitbox() {
-    const width = 170;
-
-    return {
-        x: this.otherDirection
-            ? this.x + this.width - 60
-            : this.x - 110,
-        y: this.y + 110,
-        width: width,
-        height: 180
-    };
-}
+    /**
+     * Checks whether the ranged projectile is ready to be spawned.
+     *
+     * @returns {boolean} True when the projectile is ready.
+     */
+    isRangedProjectileReady() {
+        return this.rangedProjectileReady &&
+            !this.isDead() &&
+            !this.deathAnimationStarted;
+    }
 
     /**
-     * Applies damage when the boss can receive another hit.
+     * Marks the prepared ranged projectile as fired.
+     *
+     * @returns {void}
+     */
+    markRangedProjectileFired() {
+        this.rangedProjectileReady = false;
+    }
+
+    /**
+     * Returns the attack hitbox on the side the boss is facing.
+     *
+     * @returns {{x: number, y: number, width: number, height: number}}
+     */
+    getAttackHitbox() {
+        const width = 170;
+
+        return {
+            x: this.otherDirection
+                ? this.x + this.width - 60
+                : this.x - 110,
+            y: this.y + 110,
+            width: width,
+            height: 180
+        };
+    }
+
+    /**
+     * Applies damage and interrupts the current attack.
      *
      * @param {number} damage - Amount of damage.
      * @returns {boolean} True when damage was applied.
@@ -380,6 +453,11 @@ getAttackHitbox() {
 
         this.isHurt = true;
         this.hurtImageIndex = 0;
+
+        this.isAttacking = false;
+        this.attackType = null;
+        this.attackImageIndex = 0;
+        this.rangedProjectileReady = false;
 
         return true;
     }
@@ -431,8 +509,12 @@ getAttackHitbox() {
         this.deathAnimationFinished = false;
         this.deathImageIndex = 0;
         this.lastDeathFrameTime = 0;
+
         this.isHurt = false;
         this.isAttacking = false;
+        this.attackType = null;
+        this.attackImageIndex = 0;
+        this.rangedProjectileReady = false;
     }
 
     /**
@@ -486,59 +568,42 @@ getAttackHitbox() {
     }
 
     /**
- * Moves the boss vertically between its movement boundaries.
- *
- * @returns {void}
- */
-moveVertically() {
-    if (this.isDead() || this.deathAnimationStarted) return;
+     * Moves the boss vertically between its movement boundaries.
+     *
+     * @returns {void}
+     */
+    moveVertically() {
+        if (this.isDead() || this.deathAnimationStarted) return;
 
-    this.y += this.verticalSpeed * this.verticalDirection;
+        this.y += this.verticalSpeed * this.verticalDirection;
 
-    if (this.y >= this.maxY) {
-        this.y = this.maxY;
-        this.verticalDirection = -1;
-    } else if (this.y <= this.minY) {
-        this.y = this.minY;
-        this.verticalDirection = 1;
+        if (this.y >= this.maxY) {
+            this.y = this.maxY;
+            this.verticalDirection = -1;
+        } else if (this.y <= this.minY) {
+            this.y = this.minY;
+            this.verticalDirection = 1;
+        }
     }
-}
 
-/**
- * Moves toward Sharkie and updates the boss facing direction.
- *
- * @param {Character} character - The player character.
- * @returns {void}
- */
-moveTowardsCharacter(character) {
-    if (this.isDead() || this.deathAnimationStarted) return;
+    /**
+     * Moves toward Sharkie and updates the boss facing direction.
+     *
+     * @param {Character} character - The player character.
+     * @returns {void}
+     */
+    moveTowardsCharacter(character) {
+        if (this.isDead() || this.deathAnimationStarted) return;
 
-    const bossCenter = this.x + this.width / 2;
-    const characterCenter = character.x + character.width / 2;
-    const distance = characterCenter - bossCenter;
+        const bossCenter = this.x + this.width / 2;
+        const characterCenter = character.x + character.width / 2;
+        const distance = characterCenter - bossCenter;
 
-    this.otherDirection = distance > 0;
+        this.otherDirection = distance > 0;
 
-    if (Math.abs(distance) <= this.attackDistance) return;
+        if (Math.abs(distance) <= this.attackDistance) return;
 
-    this.x += Math.sign(distance) * this.horizontalSpeed;
-    this.x = Math.max(this.minX, Math.min(this.maxX, this.x));
-}
-
-/**
- * Checks whether the boss can perform a ranged attack.
- *
- * @returns {boolean} True when a ranged attack is available.
- */
-canUseRangedAttack() {
-    return this.activated &&
-        this.introductionFinished &&
-        !this.isDead() &&
-        !this.isHurt &&
-        !this.isAttacking &&
-        !this.deathAnimationStarted &&
-        Date.now() - this.lastRangedAttackTime >=
-            this.rangedAttackCooldown;
-}
-
+        this.x += Math.sign(distance) * this.horizontalSpeed;
+        this.x = Math.max(this.minX, Math.min(this.maxX, this.x));
+    }
 }
