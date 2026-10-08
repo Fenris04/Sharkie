@@ -79,6 +79,9 @@ class Character extends MovableObject {
     /** @type {'poison'|'electric'} Type of the last received damage. */
     damageType = 'poison';
 
+    /** @type {HTMLImageElement[]} Images used for electric-shock death. */
+    electricDeadImages = [];
+
     /**
      * Creates Sharkie and loads all required animations.
      *
@@ -96,6 +99,7 @@ class Character extends MovableObject {
         this.loadHurtImages();
         this.loadElectricHurtImages();
         this.loadDeadImages();
+        this.loadElectricDeadImages();
         this.loadAttackImages();
 
         this.animate();
@@ -290,17 +294,20 @@ class Character extends MovableObject {
 
 
     /**
-     * Plays the death animation once and keeps its final frame visible.
-     *
-     * @returns {void}
-     */
+    * Plays the death animation matching the last damage type.
+    * The animation is played only once.
+    *
+    * @returns {void}
+    */
     playDeathAnimation() {
         if (this.deathAnimationFinished) {
-            return;
+           return;
         }
 
-        if (this.currentImage < this.deadImages.length) {
-            this.img = this.deadImages[this.currentImage];
+        const images = this.getDeathImages();
+
+        if (this.currentImage < images.length) {
+            this.img = images[this.currentImage];
             this.currentImage++;
         } else {
             this.finishDeathAnimation();
@@ -309,14 +316,15 @@ class Character extends MovableObject {
 
 
     /**
-     * Finishes the death animation and keeps its last frame visible.
-     *
-     * @returns {void}
-     */
+    * Finishes the death animation and keeps its final frame visible.
+    *
+    * @returns {void}
+    */
     finishDeathAnimation() {
-        const lastImage = this.deadImages.length - 1;
+        const images = this.getDeathImages();
+        const lastImage = images.length - 1;
 
-        this.img = this.deadImages[lastImage];
+        this.img = images[lastImage];
         this.deathAnimationFinished = true;
     }
 
@@ -569,4 +577,32 @@ class Character extends MovableObject {
         this.playAnimation(this.hurtImages);
     }
 
+    /**
+    * Loads all frames of Sharkie's electric-shock death animation.
+    *
+    * @returns {void}
+    */
+    loadElectricDeadImages() {
+        for (let i = 1; i <= 10; i++) {
+            const image = new Image();
+
+            image.src =
+                `assets/1.Sharkie/6.dead/2.Electro_shock/${i}.png`;
+
+            this.electricDeadImages.push(image);
+        }
+    }
+
+    /**
+    * Returns the death animation for the last received damage type.
+    *
+    * @returns {HTMLImageElement[]} Matching death animation frames.
+    */
+    getDeathImages() {
+        if (this.damageType === 'electric') {
+            return this.electricDeadImages;
+        }
+
+        return this.deadImages;
+    }
 }
