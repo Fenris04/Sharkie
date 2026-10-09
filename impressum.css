@@ -1,0 +1,116 @@
+
+/* Page layout */
+body {
+    margin: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px 16px;
+    box-sizing: border-box;
+    background: linear-gradient(180deg, #08364e, #041b2c);
+    color: #ffffff;
+    font-family: Arial, sans-serif;
+}
+
+/* Main legal card */
+.legal-container {
+    width: min(600px, 100%);
+    padding: clamp(24px, 5vw, 40px);
+    box-sizing: border-box;
+    border: 3px solid #70d8f2;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #075b7d, #04364f);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+
+/* Main heading */
+.legal-title {
+    margin: 0 0 28px;
+    color: #ffd700;
+    font-size: clamp(32px, 6vw, 48px);
+    font-weight: 900;
+    text-align: center;
+    text-shadow: 3px 4px 0 #176a87;
+}
+
+/* Section headings */
+.legal-content h2 {
+    margin: 24px 0 12px;
+    color: #8ceaff;
+    font-size: clamp(20px, 3vw, 24px);
+}
+
+/* Text */
+.legal-content p {
+    margin: 0;
+    color: #ffffff;
+    font-size: 16px;
+    line-height: 1.8;
+    overflow-wrap: anywhere;
+}
+
+/* Contact links */
+.legal-content a {
+    color: #ffd700;
+    font-weight: bold;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+}
+
+.legal-content a:hover {
+    color: #fff09a;
+}
+
+/* Back button */
+.legal-back-button {
+    display: block;
+    width: fit-content;
+    margin: 36px auto 0;
+    padding: 12px 26px;
+    border: 2px solid #ffffff;
+    border-radius: 14px;
+    background-color: #ffd700;
+    color: #123c51;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    text-decoration: none;
+    transition:
+        background-color 0.2s,
+        transform 0.2s;
+}
+
+.legal-back-button:hover {
+    background-color: #fff09a;
+    transform: scale(1.04);
+}
+
+.legal-back-button:active {
+    transform: scale(0.97);
+}
+
+/* Mobile layout */
+@media (max-width: 480px) {
+    body {
+        align-items: flex-start;
+        padding: 16px;
+    }
+
+    .legal-container {
+        padding: 24px 20px;
+    }
+
+    .legal-title {
+        font-size: 32px;
+    }
+
+    .legal-content p {
+        font-size: 15px;
+    }
+
+    .legal-back-button {
+        font-size: 16px;
+    }
+}

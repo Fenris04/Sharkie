@@ -149,10 +149,17 @@ function addStartEvent() {
  * @returns {void}
  */
 function addRestartEvents() {
-    const restartButton = document.getElementById('restart-button');
-    const winRestartButton = document.getElementById('win-restart-button');
-    restartButton.addEventListener('click', restartGame);
-    winRestartButton.addEventListener('click', restartGame);
+    document.getElementById('restart-button')
+        .addEventListener('click', restartGame);
+
+    document.getElementById('win-restart-button')
+        .addEventListener('click', restartGame);
+
+    document.getElementById('win-menu-button')
+        .addEventListener('click', returnToMenu);
+
+    document.getElementById('game-over-menu-button')
+        .addEventListener('click', returnToMenu);
 }
 
 /**
