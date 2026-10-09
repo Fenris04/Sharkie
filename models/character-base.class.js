@@ -1,3 +1,4 @@
+
 /**
  * Provides Sharkie's properties, image loading and basic attack controls.
  */
@@ -198,12 +199,16 @@ class CharacterBase extends MovableObject {
     }
 
     /**
-     * Starts Sharkie's animation interval.
-     *
-     * @returns {void}
-     */
+    * Starts Sharkie's animation interval.
+    *
+    * @returns {void}
+    */
     animate() {
+        if (this.animationInterval !== null) return;
+
         this.animationInterval = setInterval(() => {
+            if (this.world.paused || !this.world.running) return;
+
             this.updateAttackState();
             this.updateBubbleAttackState();
             this.updateAnimation();

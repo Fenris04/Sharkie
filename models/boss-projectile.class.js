@@ -1,3 +1,4 @@
+
 /**
  * Represents a projectile fired by the final boss.
  */
@@ -21,6 +22,9 @@ class BossProjectile extends MovableObject {
     /** @type {number} Damage caused by the projectile. */
     damage = 15;
 
+    /** @type {World|null} Reference to the current game world. */
+    world = null;
+
     /**
      * Creates a projectile aimed at Sharkie's position.
      *
@@ -28,13 +32,35 @@ class BossProjectile extends MovableObject {
      * @param {number} y - Starting vertical position.
      * @param {number} targetX - Target horizontal position.
      * @param {number} targetY - Target vertical position.
+     * @param {World|null} world - Current game world.
      */
-    constructor(x, y, targetX, targetY) {
+    constructor(x, y, targetX, targetY, world = null) {
         super();
         this.x = x;
         this.y = y;
+        this.world = world;
         this.setDirection(targetX, targetY);
         this.createImage();
+    }
+
+    /**
+     * Connects the projectile to its game world.
+     *
+     * @param {World} world - Current game world.
+     * @returns {void}
+     */
+    setWorld(world) {
+        this.world = world;
+    }
+
+    /**
+     * Checks whether the game world is paused or stopped.
+     *
+     * @returns {boolean} True when movement must stop.
+     */
+    isWorldPaused() {
+        return this.world !== null &&
+            (this.world.paused || !this.world.running);
     }
 
     /**
@@ -123,6 +149,7 @@ class BossProjectile extends MovableObject {
      * @returns {void}
      */
     move() {
+        if (this.isWorldPaused() || this.hasHit) return;
         this.x += this.speedX;
         this.y += this.speedY;
     }

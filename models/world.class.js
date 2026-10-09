@@ -12,19 +12,23 @@ class World extends WorldBossPoison {
     draw() {
         if (!this.running) return;
 
-        this.clearCanvas();
-        this.update();
-        this.drawGameWorld();
+        if (!this.paused) {
+            this.clearCanvas();
+            this.update();
+            this.drawGameWorld();
+        }
 
         requestAnimationFrame(() => this.draw());
     }
 
     /**
-     * Updates the current game frame.
-     *
-     * @returns {void}
-     */
+    * Updates the current game frame.
+    *
+    * @returns {void}
+    */
     update() {
+        if (!this.running || this.paused) return;
+
         if (this.isBossCutsceneActive()) {
             this.updateBossCutscene();
             return;
@@ -140,11 +144,40 @@ class World extends WorldBossPoison {
     }
 
     /**
-     * Stops the game and all active animation intervals.
-     *
-     * @returns {void}
-     */
+    * Pauses gameplay and enemy spawning.
+    *
+    * @returns {void}
+    */
+    pause() {
+        if (!this.running || this.gameOver || this.paused) return;
+
+        this.pauseStartedAt = Date.now();
+        this.paused = true;
+        this.enemySpawner.pause();
+    }
+
+    /**
+    * Resumes gameplay and enemy spawning.
+    *
+    * @returns {void}
+    */
+    resume() {
+        if (!this.running || !this.paused) return;
+
+        this.totalPausedTime += Date.now() - this.pauseStartedAt;
+        this.paused = false;
+        this.pauseStartedAt = 0;
+        this.enemySpawner.resume();
+    }
+
+    /**
+    * Stops the game and all active animation intervals.
+    *
+    * @returns {void}
+    */
     stop() {
+        if (!this.running) return;
+
         this.running = false;
         this.enemySpawner.stop();
         this.endboss.stopIntervals();

@@ -1,3 +1,4 @@
+
 /**
  * Represents Sharkie and handles his attack hitboxes and bubbles.
  */
@@ -153,7 +154,7 @@ class Character extends CharacterAnimation {
         const bubbleY = this.y + 110;
 
         this.world.bubbles.push(
-            new Bubble(bubbleX, bubbleY, this.otherDirection)
+            new Bubble(bubbleX, bubbleY, this.otherDirection, this.world)
         );
     }
 }

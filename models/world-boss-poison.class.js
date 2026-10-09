@@ -12,7 +12,7 @@ class WorldBossPoison extends WorldBossCutscene {
     updateBossPoisonSpawning() {
         if (this.gameState !== 'boss-fight') return;
 
-        const now = Date.now();
+        const now = this.getGameTime();
 
         if (this.lastBossPoisonSpawn === 0) {
             this.lastBossPoisonSpawn = now;
@@ -28,7 +28,7 @@ class WorldBossPoison extends WorldBossCutscene {
     /**
      * Checks whether the spawn interval has elapsed.
      *
-     * @param {number} now - Current timestamp.
+     * @param {number} now - Current gameplay timestamp.
      * @returns {boolean} True when spawning is due.
      */
     isBossPoisonSpawnDue(now) {
@@ -69,7 +69,7 @@ class WorldBossPoison extends WorldBossCutscene {
         const x = minX + Math.random() * (maxX - minX);
         const y = 100 + Math.random() * 250;
 
-        return new PoisonBottle(x, y);
+        return new PoisonBottle(x, y, this);
     }
 
     /**
@@ -90,6 +90,6 @@ class WorldBossPoison extends WorldBossCutscene {
      * @returns {void}
      */
     startBossPoisonSpawning() {
-        this.lastBossPoisonSpawn = Date.now();
+        this.lastBossPoisonSpawn = this.getGameTime();
     }
 }

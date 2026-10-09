@@ -1,3 +1,4 @@
+
 /**
  * Represents a puffer fish enemy.
  * Handles movement, swimming and death behavior.
@@ -31,6 +32,9 @@ class PufferFish extends MovableObject {
     /** @type {number|null} ID of the animation interval. */
     animationInterval = null;
 
+    /** @type {World|null} Reference to the game world. */
+    world = null;
+
     /** @type {number} Top offset of the collision box. */
     offsetTop = 10;
 
@@ -43,24 +47,22 @@ class PufferFish extends MovableObject {
     /** @type {number} Left offset of the collision box. */
     offsetLeft = 10;
 
-
     /**
      * Creates a new puffer fish.
      *
      * @param {number} x - Horizontal start position.
      * @param {number} y - Vertical start position.
+     * @param {World|null} world - Current game world.
      */
-    constructor(x, y) {
+    constructor(x, y, world = null) {
         super();
-
         this.x = x;
         this.y = y;
-
+        this.world = world;
         this.loadSwimImages();
         this.loadDeadImage();
         this.animate();
     }
-
 
     /**
      * Loads all swimming animation images.
@@ -70,12 +72,10 @@ class PufferFish extends MovableObject {
     loadSwimImages() {
         for (let i = 1; i <= 5; i++) {
             const image = new Image();
-
             image.src = this.getSwimImagePath(i);
             this.swimImages.push(image);
         }
     }
-
 
     /**
      * Returns the path of a swimming animation frame.
@@ -87,23 +87,20 @@ class PufferFish extends MovableObject {
         return `assets/2.Enemy/1.Puffer fish (3 color options)/1.Swim/1.swim${frame}.png`;
     }
 
-
     /**
-     * Loads the image used after the enemy is hit by a fin slap.
+     * Loads the image used after a fin slap.
      *
      * @returns {void}
      */
     loadDeadImage() {
         this.deadImage = new Image();
-
         this.deadImage.src =
             'assets/2.Enemy/1.Puffer fish (3 color options)/4.DIE/' +
             '1.Dead 2 (can animate by going down to the floor after the Fin Slap attack).png';
     }
 
-
     /**
-     * Starts all enemy animations and movement.
+     * Starts movement and animation intervals.
      *
      * @returns {void}
      */
@@ -112,6 +109,15 @@ class PufferFish extends MovableObject {
         this.startSwimAnimation();
     }
 
+    /**
+     * Checks whether the current world is paused.
+     *
+     * @returns {boolean} True when gameplay is paused.
+     */
+    isWorldPaused() {
+        return this.world !== null &&
+            (this.world.paused || !this.world.running);
+    }
 
     /**
      * Starts the automatic enemy movement.
@@ -120,10 +126,10 @@ class PufferFish extends MovableObject {
      */
     startMovement() {
         this.movementInterval = setInterval(() => {
+            if (this.isWorldPaused()) return;
             this.updateMovement();
         }, 1000 / 60);
     }
-
 
     /**
      * Updates the enemy position.
@@ -138,16 +144,14 @@ class PufferFish extends MovableObject {
         }
     }
 
-
     /**
-     * Moves a defeated enemy toward the bottom of the canvas.
+     * Moves a defeated enemy toward the bottom.
      *
      * @returns {void}
      */
     moveDeadEnemy() {
         this.y += 3;
     }
-
 
     /**
      * Starts the swimming animation.
@@ -156,10 +160,10 @@ class PufferFish extends MovableObject {
      */
     startSwimAnimation() {
         this.animationInterval = setInterval(() => {
+            if (this.isWorldPaused()) return;
             this.updateAnimation();
         }, 150);
     }
-
 
     /**
      * Updates the currently displayed enemy image.
@@ -174,7 +178,6 @@ class PufferFish extends MovableObject {
         }
     }
 
-
     /**
      * Displays the next swimming animation frame.
      *
@@ -182,11 +185,9 @@ class PufferFish extends MovableObject {
      */
     playAnimation() {
         const index = this.currentImage % this.swimImages.length;
-
         this.img = this.swimImages[index];
         this.currentImage++;
     }
-
 
     /**
      * Defeats the enemy.
@@ -194,14 +195,10 @@ class PufferFish extends MovableObject {
      * @returns {void}
      */
     die() {
-        if (this.dead) {
-            return;
-        }
-
+        if (this.dead) return;
         this.dead = true;
         this.img = this.deadImage;
     }
-
 
     /**
      * Checks whether the enemy has been defeated.
@@ -211,7 +208,6 @@ class PufferFish extends MovableObject {
     isDead() {
         return this.dead;
     }
-
 
     /**
      * Stops all running enemy intervals.

@@ -118,7 +118,7 @@ class WorldBoss extends WorldCollectibles {
         const targetY = this.character.y + this.character.height / 2;
 
         this.bossProjectiles.push(
-            new BossProjectile(startX, startY, targetX, targetY)
+            new BossProjectile(startX, startY, targetX, targetY, this)
         );
     }
 

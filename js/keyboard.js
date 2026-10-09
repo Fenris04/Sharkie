@@ -70,8 +70,33 @@ function updateKeyboardControl(event, pressed) {
     const control = keyControls[key];
 
     if (!control) return;
+    if (pressed && !canAcceptGameInput()) return;
 
     keyboard[control] = pressed;
+}
+
+/**
+ * Checks whether the game can accept keyboard input.
+ *
+ * @returns {boolean} True when gameplay input is allowed.
+ */
+function canAcceptGameInput() {
+    if (typeof world === 'undefined' || !world) return false;
+    if (!world.running || world.paused || world.gameOver) return false;
+
+    const dialog = document.getElementById('instructions-dialog');
+    return !dialog || !dialog.open;
+}
+
+/**
+ * Resets all active game controls.
+ *
+ * @returns {void}
+ */
+function resetKeyboardControls() {
+    Object.keys(keyboard).forEach(control => {
+        keyboard[control] = false;
+    });
 }
 
 /**
@@ -103,5 +128,15 @@ function shouldPreventScrolling(event) {
     ].includes(event.code);
 }
 
+/**
+ * Resets controls when the browser window loses focus.
+ *
+ * @returns {void}
+ */
+function handleWindowBlur() {
+    resetKeyboardControls();
+}
+
 window.addEventListener('keydown', handleKeyDown);
 window.addEventListener('keyup', handleKeyUp);
+window.addEventListener('blur', handleWindowBlur);

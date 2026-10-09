@@ -64,30 +64,12 @@ class WorldRender extends WorldBase {
     }
 
     /**
-     * Draws Sharkie and the collision hitboxes.
+     * Draws Sharkie without visible debug hitboxes.
      *
      * @returns {void}
      */
     drawCharacterAndHitboxes() {
         this.character.draw(this.ctx);
-        this.drawHitboxes();
-    }
-
-    /**
-     * Draws collision hitboxes for debugging.
-     *
-     * @returns {void}
-     */
-    drawHitboxes() {
-        this.character.drawHitbox(this.ctx);
-
-        this.enemies.forEach(enemy => {
-            enemy.drawHitbox(this.ctx);
-        });
-
-        this.jellyfish.forEach(jellyfish => {
-            jellyfish.drawHitbox(this.ctx);
-        });
     }
 
     /**

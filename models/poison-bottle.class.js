@@ -22,20 +22,45 @@ class PoisonBottle extends MovableObject {
     /** @type {number|null} Animation interval identifier. */
     animationInterval = null;
 
+    /** @type {World|null} Reference to the current game world. */
+    world = null;
+
     /**
      * Creates a poison bottle at a world position.
      *
      * @param {number} x - Horizontal position.
      * @param {number} y - Vertical position.
+     * @param {World|null} world - Current game world.
      */
-    constructor(x, y) {
+    constructor(x, y, world = null) {
         super();
 
         this.x = x;
         this.y = y;
+        this.world = world;
 
         this.loadBottleImages();
         this.animate();
+    }
+
+    /**
+     * Connects the bottle to its game world.
+     *
+     * @param {World} world - Current game world.
+     * @returns {void}
+     */
+    setWorld(world) {
+        this.world = world;
+    }
+
+    /**
+     * Checks whether the game world is paused or stopped.
+     *
+     * @returns {boolean} True when animation must wait.
+     */
+    isWorldPaused() {
+        return this.world !== null &&
+            (this.world.paused || !this.world.running);
     }
 
     /**
@@ -60,7 +85,10 @@ class PoisonBottle extends MovableObject {
      * @returns {void}
      */
     animate() {
+        if (this.animationInterval !== null) return;
+
         this.animationInterval = setInterval(() => {
+            if (this.isWorldPaused() || this.collected) return;
             this.updateAnimation();
         }, 150);
     }
@@ -94,5 +122,6 @@ class PoisonBottle extends MovableObject {
      */
     stopIntervals() {
         clearInterval(this.animationInterval);
+        this.animationInterval = null;
     }
 }

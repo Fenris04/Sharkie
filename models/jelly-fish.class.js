@@ -1,11 +1,15 @@
+
 /**
  * Represents a purple jellyfish enemy.
  */
 class JellyFish extends MovableObject {
+
     /** @type {number} Width of the jellyfish. */
     width = 90;
+
     /** @type {number} Height of the jellyfish. */
     height = 110;
+
     /** @type {number} Movement speed. */
     speed = 0.4;
 
@@ -14,10 +18,13 @@ class JellyFish extends MovableObject {
 
     /** @type {number} Top collision offset. */
     offsetTop = 15;
+
     /** @type {number} Right collision offset. */
     offsetRight = 15;
+
     /** @type {number} Bottom collision offset. */
     offsetBottom = 15;
+
     /** @type {number} Left collision offset. */
     offsetLeft = 15;
 
@@ -42,26 +49,28 @@ class JellyFish extends MovableObject {
     /** @type {number} Current movement phase. */
     movementPhase = 0;
 
-    /** @type {number | null} Movement interval identifier. */
+    /** @type {number|null} Movement interval identifier. */
     movementInterval = null;
 
-    /** @type {number | null} Animation interval identifier. */
+    /** @type {number|null} Animation interval identifier. */
     animationInterval = null;
 
+    /** @type {World|null} Reference to the current game world. */
+    world = null;
 
     /**
      * Creates a jellyfish at the given position.
      *
      * @param {number} x - Initial horizontal position.
      * @param {number} y - Initial vertical position.
+     * @param {World|null} world - Current game world.
      */
-    constructor(x, y) {
+    constructor(x, y, world = null) {
         super();
-
         this.x = x;
         this.y = y;
+        this.world = world;
         this.startY = y;
-
         this.loadSwimImages();
         this.loadDeadImages();
         this.startMovement();
@@ -97,18 +106,29 @@ class JellyFish extends MovableObject {
     }
 
     /**
+     * Checks whether the game world is paused or stopped.
+     *
+     * @returns {boolean} True when the jellyfish must wait.
+     */
+    isWorldPaused() {
+        return this.world !== null &&
+            (this.world.paused || !this.world.running);
+    }
+
+    /**
      * Starts the jellyfish movement loop.
      *
      * @returns {void}
      */
     startMovement() {
         this.movementInterval = setInterval(() => {
-            if (!this.dead) this.move();
+            if (this.isWorldPaused() || this.dead) return;
+            this.move();
         }, 1000 / 60);
     }
 
     /**
-     * Moves the jellyfish left while gently floating up and down.
+     * Moves the jellyfish left while floating up and down.
      *
      * @returns {void}
      */
@@ -125,6 +145,7 @@ class JellyFish extends MovableObject {
      */
     animate() {
         this.animationInterval = setInterval(() => {
+            if (this.isWorldPaused()) return;
             this.updateAnimation();
         }, 150);
     }

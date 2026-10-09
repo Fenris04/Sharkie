@@ -54,6 +54,77 @@
     <div class="game-container">
       <canvas id="canvas" width="720" height="480"></canvas>
 
+      <!-- Main menu -->
+      <div id="start-screen" class="start-screen visible">
+        <h2 class="start-title">SHARKIE</h2>
+        <p class="start-subtitle">The Underwater Adventure</p>
+
+        <button
+          id="start-button"
+          class="menu-button"
+          type="button"
+        >
+          Start Game
+        </button>
+
+        <button
+          class="menu-button"
+          type="button"
+          onclick="document.getElementById('instructions-dialog').showModal()"
+        >
+          How to Play
+        </button>
+      </div>
+
+      <!-- Open pause menu -->
+      <button
+        id="menu-button"
+        class="game-menu-button"
+        type="button"
+        aria-label="Open pause menu"
+        aria-controls="pause-screen"
+        aria-expanded="false"
+      >
+        Menu
+      </button>
+
+      <!-- Pause menu -->
+      <div
+        id="pause-screen"
+        class="pause-screen"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pause-title"
+        aria-hidden="true"
+      >
+        <h2 id="pause-title" class="pause-title">PAUSED</h2>
+
+        <button
+          id="resume-button"
+          class="menu-button"
+          type="button"
+        >
+          Resume
+        </button>
+
+        <button
+          id="pause-controls-button"
+          class="menu-button"
+          type="button"
+        >
+          Controls
+        </button>
+
+        <button
+          id="pause-main-menu-button"
+          class="menu-button"
+          type="button"
+        >
+          Main Menu
+        </button>
+      </div>
+
+      <!-- Touch controls -->
       <div class="touch-controls" aria-label="Game controls">
         <div class="touch-direction-controls">
           <button
@@ -92,18 +163,19 @@
             class="touch-button touch-action-button"
             type="button"
             data-control="SPACE"
-            aria-label="Bubble attack"
-          >🫧</button>
+            aria-label="Fin attack"
+          >⚡</button>
 
           <button
             class="touch-button touch-action-button"
             type="button"
             data-control="A"
-            aria-label="Fin attack"
-          >⚡</button>
+            aria-label="Bubble attack"
+          >🫧</button>
         </div>
       </div>
 
+      <!-- Game-over screen -->
       <div id="game-over-screen" class="game-over-screen">
         <img
           class="game-over-title"
@@ -111,18 +183,53 @@
           alt="Game Over"
         />
 
-        <button id="restart-button" class="restart-button" type="button">
+        <button
+          id="restart-button"
+          class="restart-button"
+          type="button"
+        >
           Try again
         </button>
       </div>
 
+      <!-- Victory screen -->
       <div id="you-win-screen" class="you-win-screen">
         <h2 class="you-win-title">YOU WIN!</h2>
 
-        <button id="win-restart-button" class="restart-button" type="button">
+        <button
+          id="win-restart-button"
+          class="restart-button"
+          type="button"
+        >
           Play again
         </button>
       </div>
     </div>
+
+    <!-- Game instructions -->
+    <dialog id="instructions-dialog" class="instructions-dialog">
+      <h2>How to Play</h2>
+
+      <p>Help Sharkie explore the underwater world!</p>
+
+      <h3>Movement</h3>
+      <p>Arrow Up: Swim up</p>
+      <p>Arrow Down: Swim down</p>
+      <p>Arrow Left: Swim left</p>
+      <p>Arrow Right: Swim right</p>
+
+      <h3>Attacks</h3>
+      <p>Space: Fin attack</p>
+      <p>A: Bubble attack</p>
+
+      <h3>Mobile</h3>
+      <p>Use the on-screen buttons to move and attack.</p>
+
+      <form method="dialog">
+        <button class="menu-button" type="submit">
+          Close
+        </button>
+      </form>
+    </dialog>
   </body>
 </html>

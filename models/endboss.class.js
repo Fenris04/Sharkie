@@ -5,21 +5,30 @@
 class Endboss extends EndbossAnimation {
 
     /**
+     * Returns the current gameplay time.
+     *
+     * @returns {number} Time excluding completed pauses.
+     */
+    getGameTime() {
+        return this.world
+            ? this.world.getGameTime()
+            : Date.now();
+    }
+
+    /**
      * Starts a melee attack when the boss is ready.
      *
      * @returns {void}
      */
     tryAttack() {
-        if (!this.canStartAttack()) {
-            return;
-        }
+        if (!this.canStartAttack()) return;
 
         this.isAttacking = true;
         this.attackType = 'melee';
         this.attackImageIndex = 0;
         this.attackHasHit = false;
         this.rangedProjectileReady = false;
-        this.lastAttackTime = Date.now();
+        this.lastAttackTime = this.getGameTime();
     }
 
     /**
@@ -34,7 +43,8 @@ class Endboss extends EndbossAnimation {
             !this.isHurt &&
             !this.isAttacking &&
             !this.deathAnimationStarted &&
-            Date.now() - this.lastAttackTime >= this.attackCooldown;
+            this.getGameTime() - this.lastAttackTime >=
+                this.attackCooldown;
     }
 
     /**
@@ -43,16 +53,14 @@ class Endboss extends EndbossAnimation {
      * @returns {void}
      */
     startRangedAttack() {
-        if (!this.canUseRangedAttack()) {
-            return;
-        }
+        if (!this.canUseRangedAttack()) return;
 
         this.isAttacking = true;
         this.attackType = 'ranged';
         this.attackImageIndex = 0;
         this.attackHasHit = false;
         this.rangedProjectileReady = false;
-        this.lastRangedAttackTime = Date.now();
+        this.lastRangedAttackTime = this.getGameTime();
     }
 
     /**
@@ -67,7 +75,7 @@ class Endboss extends EndbossAnimation {
             !this.isHurt &&
             !this.isAttacking &&
             !this.deathAnimationStarted &&
-            Date.now() - this.lastRangedAttackTime >=
+            this.getGameTime() - this.lastRangedAttackTime >=
                 this.rangedAttackCooldown;
     }
 
@@ -130,12 +138,10 @@ class Endboss extends EndbossAnimation {
      * @returns {boolean} True when damage was applied.
      */
     hit(damage) {
-        if (!this.canReceiveDamage()) {
-            return false;
-        }
+        if (!this.canReceiveDamage()) return false;
 
         this.energy = Math.max(0, this.energy - damage);
-        this.lastHit = Date.now();
+        this.lastHit = this.getGameTime();
         this.startHurtState();
 
         return true;
@@ -164,7 +170,7 @@ class Endboss extends EndbossAnimation {
         return this.activated &&
             this.introductionFinished &&
             this.energy > 0 &&
-            Date.now() - this.lastHit >= this.hitCooldown;
+            this.getGameTime() - this.lastHit >= this.hitCooldown;
     }
 
     /**
@@ -182,9 +188,7 @@ class Endboss extends EndbossAnimation {
      * @returns {void}
      */
     moveVertically() {
-        if (this.isDead() || this.deathAnimationStarted) {
-            return;
-        }
+        if (this.isDead() || this.deathAnimationStarted) return;
 
         this.y += this.verticalSpeed * this.verticalDirection;
         this.updateVerticalDirection();
@@ -212,9 +216,7 @@ class Endboss extends EndbossAnimation {
      * @returns {void}
      */
     moveTowardsCharacter(character) {
-        if (this.isDead() || this.deathAnimationStarted) {
-            return;
-        }
+        if (this.isDead() || this.deathAnimationStarted) return;
 
         const bossCenter = this.x + this.width / 2;
         const characterCenter = character.x + character.width / 2;
@@ -231,9 +233,7 @@ class Endboss extends EndbossAnimation {
      * @returns {void}
      */
     moveHorizontallyTowards(distance) {
-        if (Math.abs(distance) <= this.attackDistance) {
-            return;
-        }
+        if (Math.abs(distance) <= this.attackDistance) return;
 
         this.x += Math.sign(distance) * this.horizontalSpeed;
         this.x = Math.max(this.minX, Math.min(this.maxX, this.x));

@@ -12,6 +12,9 @@ class EnemySpawner {
     /** @type {boolean} Whether spawning is active. */
     running = false;
 
+    /** @type {boolean} Whether spawning is paused. */
+    paused = false;
+
     /** @type {number} Maximum number of living enemies. */
     maxEnemies = 8;
 
@@ -39,6 +42,7 @@ class EnemySpawner {
         if (this.running || this.hasReachedBossArea()) return;
 
         this.running = true;
+        this.paused = false;
         this.scheduleNextSpawn();
     }
 
@@ -48,7 +52,7 @@ class EnemySpawner {
      * @returns {void}
      */
     scheduleNextSpawn() {
-        if (!this.running) return;
+        if (!this.running || this.paused) return;
 
         if (this.hasReachedBossArea()) {
             this.stop();
@@ -69,7 +73,11 @@ class EnemySpawner {
      * @returns {void}
      */
     handleScheduledSpawn() {
-        if (!this.running) return;
+        this.spawnTimeout = null;
+
+        if (!this.running || this.paused || this.world.paused) {
+            return;
+        }
 
         if (this.hasReachedBossArea()) {
             this.stop();
@@ -86,6 +94,8 @@ class EnemySpawner {
      * @returns {void}
      */
     spawnEnemy() {
+        if (this.paused || this.world.paused) return;
+
         if (this.hasReachedBossArea()) {
             this.stop();
             return;
@@ -167,12 +177,38 @@ class EnemySpawner {
     }
 
     /**
+     * Pauses enemy spawning and clears the pending timeout.
+     *
+     * @returns {void}
+     */
+    pause() {
+        if (!this.running || this.paused) return;
+
+        this.paused = true;
+        clearTimeout(this.spawnTimeout);
+        this.spawnTimeout = null;
+    }
+
+    /**
+     * Resumes spawning without creating duplicate timers.
+     *
+     * @returns {void}
+     */
+    resume() {
+        if (!this.running || !this.paused) return;
+
+        this.paused = false;
+        this.scheduleNextSpawn();
+    }
+
+    /**
      * Stops spawning enemies and clears the pending timeout.
      *
      * @returns {void}
      */
     stop() {
         this.running = false;
+        this.paused = false;
         clearTimeout(this.spawnTimeout);
         this.spawnTimeout = null;
     }

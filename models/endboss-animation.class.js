@@ -4,6 +4,29 @@
  */
 class EndbossAnimation extends EndbossBase {
 
+    /** @type {World|null} Reference to the current game world. */
+    world = null;
+
+    /**
+     * Connects the boss to its game world.
+     *
+     * @param {World} world - Current game world.
+     * @returns {void}
+     */
+    setWorld(world) {
+        this.world = world;
+    }
+
+    /**
+     * Checks whether the game world is paused or stopped.
+     *
+     * @returns {boolean} True when the boss must wait.
+     */
+    isWorldPaused() {
+        return this.world !== null &&
+            (this.world.paused || !this.world.running);
+    }
+
     /**
      * Activates the boss when Sharkie enters the boss area.
      *
@@ -31,6 +54,7 @@ class EndbossAnimation extends EndbossBase {
         }
 
         this.animationInterval = setInterval(() => {
+            if (this.isWorldPaused()) return;
             this.updateAnimation();
         }, 150);
     }
@@ -112,7 +136,6 @@ class EndbossAnimation extends EndbossBase {
 
         this.showImage(path);
         this.attackImageIndex++;
-
         this.prepareRangedProjectile();
 
         if (this.attackImageIndex >= this.IMAGES_ATTACK.length) {
@@ -160,7 +183,15 @@ class EndbossAnimation extends EndbossBase {
         this.deathAnimationFinished = false;
         this.deathImageIndex = 0;
         this.lastDeathFrameTime = 0;
+        this.resetDeathAttackState();
+    }
 
+    /**
+     * Clears attack states when the boss dies.
+     *
+     * @returns {void}
+     */
+    resetDeathAttackState() {
         this.isHurt = false;
         this.isAttacking = false;
         this.attackType = null;
@@ -174,16 +205,12 @@ class EndbossAnimation extends EndbossBase {
      * @returns {void}
      */
     playDeathAnimation() {
-        if (this.deathAnimationFinished) {
-            return;
-        }
+        if (this.deathAnimationFinished) return;
 
         const now = Date.now();
         const frameDelay = 200;
 
-        if (now - this.lastDeathFrameTime < frameDelay) {
-            return;
-        }
+        if (now - this.lastDeathFrameTime < frameDelay) return;
 
         this.lastDeathFrameTime = now;
         this.advanceDeathAnimation();

@@ -1,3 +1,4 @@
+
 /**
  * Handles Sharkie's animations, movement and health.
  */
@@ -67,9 +68,7 @@ class CharacterAnimation extends CharacterBase {
      * @returns {void}
      */
     playDeathAnimation() {
-        if (this.deathAnimationFinished) {
-            return;
-        }
+        if (this.deathAnimationFinished) return;
 
         const images = this.getDeathImages();
 
@@ -100,9 +99,7 @@ class CharacterAnimation extends CharacterBase {
      * @returns {void}
      */
     move() {
-        if (this.isDead() || this.controlsLocked) {
-            return;
-        }
+        if (this.isDead() || this.controlsLocked) return;
 
         this.moveHorizontally();
         this.moveVertically();
@@ -146,9 +143,7 @@ class CharacterAnimation extends CharacterBase {
      * @returns {boolean} Whether Sharkie is moving.
      */
     isMoving() {
-        if (this.controlsLocked) {
-            return false;
-        }
+        if (this.controlsLocked) return false;
 
         return this.keyboard.RIGHT ||
             this.keyboard.LEFT ||
@@ -193,6 +188,15 @@ class CharacterAnimation extends CharacterBase {
     }
 
     /**
+     * Returns the current game time excluding paused periods.
+     *
+     * @returns {number} Current game time in milliseconds.
+     */
+    getGameTime() {
+        return this.world ? this.world.getGameTime() : Date.now();
+    }
+
+    /**
      * Reduces Sharkie's health and stores the damage type.
      *
      * @param {number} damage - Health points to remove.
@@ -200,13 +204,11 @@ class CharacterAnimation extends CharacterBase {
      * @returns {void}
      */
     hit(damage, type = 'poison') {
-        if (!this.canReceiveDamage() || this.isDead()) {
-            return;
-        }
+        if (!this.canReceiveDamage() || this.isDead()) return;
 
         this.energy = Math.max(0, this.energy - damage);
         this.damageType = type;
-        this.lastHit = Date.now();
+        this.lastHit = this.getGameTime();
         this.isAttacking = false;
         this.isBubbleAttacking = false;
         this.currentImage = 0;
@@ -218,7 +220,7 @@ class CharacterAnimation extends CharacterBase {
      * @returns {boolean} Whether the hit cooldown has expired.
      */
     canReceiveDamage() {
-        return Date.now() - this.lastHit > this.hitCooldown;
+        return this.getGameTime() - this.lastHit > this.hitCooldown;
     }
 
     /**
@@ -227,7 +229,7 @@ class CharacterAnimation extends CharacterBase {
      * @returns {boolean} Whether Sharkie is in the hurt state.
      */
     isHurt() {
-        return Date.now() - this.lastHit < this.hitCooldown;
+        return this.getGameTime() - this.lastHit < this.hitCooldown;
     }
 
     /**

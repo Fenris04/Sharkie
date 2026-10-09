@@ -9,6 +9,13 @@ body {
     justify-content: center;
     align-items: center;
     overflow-x: hidden;
+    background: linear-gradient(180deg, #08364e, #041b2c);
+    font-family: Arial, sans-serif;
+}
+
+h1 {
+    color: #ffffff;
+    text-shadow: 2px 3px 0 #176a87;
 }
 
 /* Responsive game container */
@@ -27,6 +34,122 @@ canvas {
     border: 2px solid black;
 }
 
+/* Start screen */
+.start-screen {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: clamp(10px, 2vw, 20px);
+    padding: 16px;
+    box-sizing: border-box;
+    background:
+        radial-gradient(
+            circle at 20% 20%,
+            rgba(116, 225, 255, 0.25),
+            transparent 35%
+        ),
+        linear-gradient(180deg, #08769b, #043b60 65%, #02283f);
+    text-align: center;
+}
+
+.start-screen.visible {
+    display: flex;
+}
+
+/* Start screen title */
+.start-title {
+    margin: 0;
+    color: #ffd700;
+    font-size: clamp(36px, 9vw, 80px);
+    font-weight: 900;
+    letter-spacing: 3px;
+    text-shadow:
+        3px 4px 0 #176a87,
+        0 8px 16px rgba(0, 0, 0, 0.5);
+}
+
+.start-subtitle {
+    margin: 0 0 12px;
+    color: #d9f5ff;
+    font-size: clamp(13px, 2.5vw, 22px);
+    font-weight: bold;
+}
+
+/* Main menu buttons */
+.menu-button {
+    min-width: min(240px, 80%);
+    padding: 12px 24px;
+    border: 2px solid #ffffff;
+    border-radius: 14px;
+    background-color: #ffd700;
+    color: #123c51;
+    font-family: inherit;
+    font-size: clamp(16px, 3vw, 22px);
+    font-weight: bold;
+    cursor: pointer;
+    transition:
+        background-color 0.2s,
+        transform 0.2s;
+}
+
+.menu-button:hover {
+    background-color: #fff09a;
+    transform: scale(1.04);
+}
+
+.menu-button:active {
+    transform: scale(0.97);
+}
+
+/* Pause menu overlay */
+.pause-screen {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: clamp(8px, 2.5vw, 18px);
+    padding: 16px;
+    box-sizing: border-box;
+    background:
+        radial-gradient(
+            circle at 50% 30%,
+            rgba(8, 118, 155, 0.7),
+            transparent 65%
+        ),
+        rgba(2, 27, 44, 0.88);
+    text-align: center;
+}
+
+.pause-screen.visible {
+    display: flex;
+}
+
+/* Pause menu title */
+.pause-title {
+    margin: 0 0 8px;
+    color: #ffd700;
+    font-size: clamp(28px, 7vw, 56px);
+    font-weight: 900;
+    letter-spacing: 3px;
+    text-shadow:
+        3px 4px 0 #176a87,
+        0 6px 14px rgba(0, 0, 0, 0.5);
+}
+
+/* Pause menu buttons */
+.pause-screen .menu-button {
+    width: min(260px, 80%);
+    min-width: 0;
+    padding: clamp(8px, 2vw, 12px) 18px;
+}
+
 /* Game-over and victory overlays */
 .game-over-screen,
 .you-win-screen {
@@ -41,7 +164,6 @@ canvas {
     background-color: rgba(0, 0, 0, 0.45);
 }
 
-/* Visible end screens */
 .game-over-screen.visible,
 .you-win-screen.visible {
     display: flex;
@@ -77,9 +199,48 @@ canvas {
     cursor: pointer;
 }
 
-/* Restart button hover effect */
 .restart-button:hover {
     background-color: #ffd700;
+}
+
+/* Instructions dialog */
+.instructions-dialog {
+    width: min(420px, calc(100vw - 40px));
+    max-height: min(80dvh, 600px);
+    overflow-y: auto;
+    box-sizing: border-box;
+    padding: 24px;
+    border: 3px solid #70d8f2;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #075b7d, #04364f);
+    color: #ffffff;
+    font-family: inherit;
+    text-align: center;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+.instructions-dialog::backdrop {
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+.instructions-dialog h2 {
+    margin-top: 0;
+    color: #ffd700;
+    font-size: 30px;
+}
+
+.instructions-dialog h3 {
+    margin-bottom: 8px;
+    color: #8ceaff;
+}
+
+.instructions-dialog p {
+    margin: 8px 0;
+    line-height: 1.5;
+}
+
+.instructions-dialog form {
+    margin-top: 24px;
 }
 
 /* Touch controls are hidden on desktop */
@@ -165,9 +326,32 @@ canvas {
             calc((100dvh - 60px) * 1.5)
         );
     }
+
+    .start-screen,
+    .pause-screen {
+        gap: 8px;
+    }
+
+    .start-title {
+        font-size: clamp(30px, 7vh, 56px);
+    }
+
+    .pause-title {
+        margin-bottom: 2px;
+        font-size: clamp(26px, 7vh, 42px);
+    }
+
+    .start-subtitle {
+        margin-bottom: 4px;
+    }
+
+    .start-screen .menu-button,
+    .pause-screen .menu-button {
+        padding: 8px 18px;
+    }
 }
 
-/* Larger touch buttons in landscape */
+/* Touch controls in landscape */
 @media (hover: none) and (pointer: coarse)
        and (orientation: landscape) {
     .touch-controls {
@@ -176,5 +360,42 @@ canvas {
 
     .touch-button {
         font-size: clamp(18px, 4vh, 28px);
+    }
+}
+
+/* Open-pause-menu button */
+.game-menu-button {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 2;
+    display: none;
+    padding: 8px 16px;
+    border: 2px solid #ffffff;
+    border-radius: 12px;
+    background-color: rgba(255, 215, 0, 0.9);
+    color: #123c51;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.game-menu-button.visible {
+    display: block;
+}
+
+.game-menu-button:hover {
+    background-color: #fff09a;
+}
+
+/* Smaller menu button on mobile devices */
+@media (hover: none) and (pointer: coarse) {
+    .game-menu-button {
+        top: 6px;
+        right: 6px;
+        padding: 5px 10px;
+        font-size: 12px;
     }
 }

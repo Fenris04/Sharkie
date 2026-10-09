@@ -81,6 +81,15 @@ class WorldBase {
     /** @type {boolean} Whether the game loop is running. */
     running = true;
 
+    /** @type {boolean} Whether gameplay is temporarily paused. */
+    paused = false;
+
+    /** @type {number} Timestamp when the current pause started. */
+    pauseStartedAt = 0;
+
+    /** @type {number} Total duration of completed pauses. */
+    totalPausedTime = 0;
+
     /** @type {number} Total number of collectible coins. */
     totalCoins = 19;
 
@@ -144,8 +153,21 @@ class WorldBase {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
         this.character = new Character(keyboard, this);
+        this.endboss.setWorld(this);
+        this.coins.forEach(coin => coin.setWorld(this));
+        this.poisonBottles.forEach(bottle => bottle.setWorld(this));
         this.enemySpawner = new EnemySpawner(this);
         this.enemySpawner.start();
         this.draw();
+    }
+
+    /**
+     * Returns gameplay time excluding all paused durations.
+     *
+     * @returns {number} Current gameplay timestamp in milliseconds.
+     */
+    getGameTime() {
+        const now = this.paused ? this.pauseStartedAt : Date.now();
+        return now - this.totalPausedTime;
     }
 }
