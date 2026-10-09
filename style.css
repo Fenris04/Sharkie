@@ -1,7 +1,5 @@
 
-/**
- * Main page layout.
- */
+/* Main page layout */
 body {
     margin: 0;
     min-height: 100vh;
@@ -13,18 +11,14 @@ body {
     overflow-x: hidden;
 }
 
-/**
- * Game container with responsive dimensions.
- */
+/* Responsive game container */
 .game-container {
     position: relative;
     width: min(720px, calc(100vw - 16px));
     aspect-ratio: 3 / 2;
 }
 
-/**
- * Game canvas.
- */
+/* Game canvas */
 canvas {
     display: block;
     width: 100%;
@@ -33,13 +27,12 @@ canvas {
     border: 2px solid black;
 }
 
-/**
- * Game-over and victory overlays.
- */
+/* Game-over and victory overlays */
 .game-over-screen,
 .you-win-screen {
     position: absolute;
     inset: 0;
+    z-index: 3;
     display: none;
     flex-direction: column;
     justify-content: center;
@@ -48,25 +41,19 @@ canvas {
     background-color: rgba(0, 0, 0, 0.45);
 }
 
-/**
- * Shows the active end screen.
- */
+/* Visible end screens */
 .game-over-screen.visible,
 .you-win-screen.visible {
     display: flex;
 }
 
-/**
- * Game-over title image.
- */
+/* Game-over title */
 .game-over-title {
     width: 75%;
     height: auto;
 }
 
-/**
- * Victory title.
- */
+/* Victory title */
 .you-win-title {
     margin: 0;
     color: #ffd700;
@@ -80,9 +67,7 @@ canvas {
         0 6px 12px rgba(0, 0, 0, 0.6);
 }
 
-/**
- * Restart buttons.
- */
+/* Restart buttons */
 .restart-button {
     padding: clamp(8px, 2vw, 12px) clamp(14px, 4vw, 28px);
     border: none;
@@ -92,16 +77,78 @@ canvas {
     cursor: pointer;
 }
 
-/**
- * Restart button hover effect.
- */
+/* Restart button hover effect */
 .restart-button:hover {
     background-color: #ffd700;
 }
 
-/**
- * Adjusts the layout for short landscape screens.
- */
+/* Touch controls are hidden on desktop */
+.touch-controls {
+    display: none;
+}
+
+/* Touch controls inside the game canvas */
+@media (hover: none) and (pointer: coarse) {
+    .touch-controls {
+        --button-size: clamp(34px, 10vw, 64px);
+        position: absolute;
+        z-index: 2;
+        left: 8px;
+        right: 8px;
+        bottom: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 6px;
+        pointer-events: none;
+    }
+
+    .touch-direction-controls,
+    .touch-action-controls {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        pointer-events: auto;
+    }
+
+    .touch-vertical-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .touch-button {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: var(--button-size);
+        height: var(--button-size);
+        flex-shrink: 0;
+        padding: 0;
+        border: 2px solid rgba(23, 106, 135, 0.9);
+        border-radius: 14px;
+        background-color: rgba(217, 245, 255, 0.65);
+        color: #104b62;
+        font-size: clamp(18px, 4vw, 28px);
+        font-weight: bold;
+        cursor: pointer;
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .touch-button:active {
+        background-color: rgba(255, 215, 0, 0.9);
+        transform: scale(0.96);
+    }
+
+    .touch-action-button {
+        border-radius: 50%;
+    }
+}
+
+/* Short landscape screens */
 @media (max-height: 520px) and (orientation: landscape) {
     body {
         justify-content: flex-start;
@@ -112,6 +159,22 @@ canvas {
     }
 
     .game-container {
-        width: min(720px, calc((100dvh - 60px) * 1.5));
+        width: min(
+            720px,
+            calc(100vw - 16px),
+            calc((100dvh - 60px) * 1.5)
+        );
+    }
+}
+
+/* Larger touch buttons in landscape */
+@media (hover: none) and (pointer: coarse)
+       and (orientation: landscape) {
+    .touch-controls {
+        --button-size: clamp(38px, 9vh, 64px);
+    }
+
+    .touch-button {
+        font-size: clamp(18px, 4vh, 28px);
     }
 }

@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
   <head>
@@ -43,6 +44,7 @@
     <script src="models/world.class.js" defer></script>
 
     <script src="js/keyboard.js" defer></script>
+    <script src="js/touch-controls.js" defer></script>
     <script src="js/game.js" defer></script>
   </head>
 
@@ -51,6 +53,56 @@
 
     <div class="game-container">
       <canvas id="canvas" width="720" height="480"></canvas>
+
+      <div class="touch-controls" aria-label="Game controls">
+        <div class="touch-direction-controls">
+          <button
+            class="touch-button"
+            type="button"
+            data-control="LEFT"
+            aria-label="Move left"
+          >◀</button>
+
+          <div class="touch-vertical-controls">
+            <button
+              class="touch-button"
+              type="button"
+              data-control="UP"
+              aria-label="Move up"
+            >▲</button>
+
+            <button
+              class="touch-button"
+              type="button"
+              data-control="DOWN"
+              aria-label="Move down"
+            >▼</button>
+          </div>
+
+          <button
+            class="touch-button"
+            type="button"
+            data-control="RIGHT"
+            aria-label="Move right"
+          >▶</button>
+        </div>
+
+        <div class="touch-action-controls">
+          <button
+            class="touch-button touch-action-button"
+            type="button"
+            data-control="SPACE"
+            aria-label="Bubble attack"
+          >🫧</button>
+
+          <button
+            class="touch-button touch-action-button"
+            type="button"
+            data-control="A"
+            aria-label="Fin attack"
+          >⚡</button>
+        </div>
+      </div>
 
       <div id="game-over-screen" class="game-over-screen">
         <img
