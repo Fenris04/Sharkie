@@ -27,18 +27,14 @@
   }
 }
 
-/* Mobile landscape layout */
+/* Smartphone landscape layout */
 @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
   body {
     justify-content: center;
   }
 
   .game-container {
-    width: min(
-      720px,
-      calc(100vw - 16px),
-      calc((100dvh - 50px) * 1.5)
-    );
+    width: min(720px, calc(100vw - 16px), calc((100dvh - 50px) * 1.5));
   }
 
   .game-top-bar {
@@ -46,7 +42,7 @@
   }
 }
 
-/* Mobile portrait orientation lock */
+/* Smartphone portrait orientation lock */
 @media (hover: none) and (pointer: coarse) and (orientation: portrait) {
   body {
     justify-content: center;
@@ -91,5 +87,56 @@
     margin: 0;
     font-size: 16px;
     line-height: 1.5;
+  }
+}
+
+/* Tablet landscape layout */
+@media (hover: none) and (pointer: coarse) and (orientation: landscape) and (min-width: 900px) and (min-height: 550px) {
+  body {
+    justify-content: center;
+  }
+
+  .game-container {
+    width: min(720px, calc(100vw - 16px), calc((100dvh - 170px) * 1.5));
+
+    margin-bottom: 110px;
+  }
+
+  /* Position tablet controls below and beyond the canvas */
+  .touch-controls {
+    position: absolute;
+    top: 100%;
+    bottom: auto;
+
+    left: 50%;
+    right: auto;
+    width: min(100vw - 32px, 1000px);
+
+    transform: translateX(-50%);
+    margin-top: 32px;
+    padding: 0;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    box-sizing: border-box;
+  }
+
+  /* Movement controls on the left */
+  .touch-direction-controls {
+    margin-right: auto;
+  }
+
+  /* Attack controls on the right */
+  .touch-action-controls {
+    margin-left: auto;
+  }
+
+  /* Larger tablet buttons */
+  .touch-button {
+    width: 58px;
+    height: 58px;
+    font-size: 24px;
   }
 }
