@@ -129,15 +129,19 @@ class World extends WorldBossPoison {
     }
 
     /**
-     * Displays the game-over screen once.
-     *
-     * @returns {void}
-     */
+    * Displays the game-over screen and plays its sound once.
+    *
+    * @returns {void}
+    */
     showGameOverScreen() {
         if (this.gameOver) return;
 
-        this.gameOver = true;
         this.enemySpawner.stop();
+        this.gameOver = true;
+
+        audioManager.stopEffects();
+        audioManager.stopMusic();
+        audioManager.playSound('gameOver', 0.65);
 
         document.getElementById('game-over-screen')
             .classList.add('visible');

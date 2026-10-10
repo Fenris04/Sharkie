@@ -192,10 +192,10 @@ class JellyFish extends MovableObject {
     }
 
     /**
-     * Starts the jellyfish death animation.
-     *
-     * @returns {void}
-     */
+    * Starts the jellyfish death animation.
+    *
+    * @returns {void}
+    */
     die() {
         if (this.dead) return;
 
@@ -203,6 +203,8 @@ class JellyFish extends MovableObject {
         this.deathImageIndex = 0;
         this.img = this.deadImages[0];
         this.deathImageIndex = 1;
+
+        audioManager.playSound('pop', 0.8, 1.6);
 
         clearInterval(this.movementInterval);
     }

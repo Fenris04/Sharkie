@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="en">
   <head>
@@ -9,6 +8,7 @@
     <link rel="icon" type="image/png" href="assets/7. Favicon/favicon.jpg" />
 
     <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="game-buttons.css" />
 
     <script src="models/drawable-object.class.js" defer></script>
     <script src="models/movable-object.class.js" defer></script>
@@ -55,6 +55,33 @@
     <h1>Sharkie</h1>
 
     <div class="game-container">
+
+      <!-- Game buttons above the canvas -->
+      <div class="game-top-bar">
+        <button
+          id="sound-button"
+          class="sound-button"
+          type="button"
+          aria-label="Mute sound"
+          aria-pressed="false"
+          title="Mute sound"
+        >
+          🔊
+        </button>
+
+        <button
+          id="menu-button"
+          class="game-menu-button"
+          type="button"
+          aria-label="Open pause menu"
+          aria-controls="pause-screen"
+          aria-expanded="false"
+        >
+          Menu
+        </button>
+      </div>
+
+      <!-- Game canvas -->
       <canvas id="canvas" width="720" height="480"></canvas>
 
       <!-- Main menu -->
@@ -74,18 +101,6 @@
           How to Play
         </button>
       </div>
-
-      <!-- Open pause menu -->
-      <button
-        id="menu-button"
-        class="game-menu-button"
-        type="button"
-        aria-label="Open pause menu"
-        aria-controls="pause-screen"
-        aria-expanded="false"
-      >
-        Menu
-      </button>
 
       <!-- Pause menu -->
       <div

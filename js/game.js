@@ -20,6 +20,8 @@ function init() {
     addPauseEvents();
     addEscapeEvent();
     addInitialMenuMusicEvent();
+    document.getElementById('sound-button')
+    .addEventListener('click', toggleGameSound);
 }
 
 /**
@@ -296,6 +298,23 @@ function addInitialMenuMusicEvent() {
 function startInitialMenuMusic() {
     if (world) return;
     audioManager.playMusic('menu');
+}
+
+/**
+ * Toggles game audio and updates the sound button.
+ *
+ * @returns {void}
+ */
+function toggleGameSound() {
+    audioManager.toggleMute();
+
+    const button = document.getElementById('sound-button');
+    const muted = audioManager.muted;
+
+    button.textContent = muted ? '🔇' : '🔊';
+    button.setAttribute('aria-label', muted ? 'Unmute sound' : 'Mute sound');
+    button.setAttribute('aria-pressed', String(muted));
+    button.title = muted ? 'Unmute sound' : 'Mute sound';
 }
 
 init();

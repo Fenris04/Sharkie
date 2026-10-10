@@ -43,6 +43,7 @@ class AudioManager {
             pop: 'pop1.wav',
             coin: 'coin.wav',
             potion: 'potion-pickup.wav',
+            bossDeath: 'vgdeathsound.wav',
             victory: 'Clear Skies.mp3',
             gameOver: 'game_over_bad_chest.wav'
         };

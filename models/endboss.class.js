@@ -29,6 +29,8 @@ class Endboss extends EndbossAnimation {
         this.attackHasHit = false;
         this.rangedProjectileReady = false;
         this.lastAttackTime = this.getGameTime();
+
+        audioManager.playSound('bite', 0.6);
     }
 
     /**
@@ -103,13 +105,16 @@ class Endboss extends EndbossAnimation {
             !this.deathAnimationStarted;
     }
 
-    /**
-     * Marks the prepared ranged projectile as fired.
-     *
-     * @returns {void}
-     */
+   /**
+    * Marks the prepared ranged projectile as fired.
+    *
+    * @returns {void}
+    */
     markRangedProjectileFired() {
+        if (!this.rangedProjectileReady) return;
+
         this.rangedProjectileReady = false;
+        audioManager.playSound('bubble', 0.6, 0.7);
     }
 
     /**
@@ -159,6 +164,8 @@ class Endboss extends EndbossAnimation {
         this.attackType = null;
         this.attackImageIndex = 0;
         this.rangedProjectileReady = false;
+
+        audioManager.playSound('damage', 0.55, 0.75);
     }
 
     /**

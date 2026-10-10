@@ -266,16 +266,21 @@ class WorldBossCutscene extends WorldBoss {
     }
 
     /**
-     * Displays the victory screen.
-     *
-     * @returns {void}
-     */
+    * Displays the victory screen and starts victory music.
+    *
+    * @returns {void}
+    */
     showYouWinScreen() {
         const winScreen =
             document.getElementById('you-win-screen');
 
-        if (winScreen) {
-            winScreen.classList.add('visible');
+        if (!winScreen || winScreen.classList.contains('visible')) {
+            return;
         }
+
+        audioManager.stopMusic();
+        audioManager.playMusic('victory');
+
+        winScreen.classList.add('visible');
     }
 }

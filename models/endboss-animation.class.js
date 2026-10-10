@@ -184,6 +184,8 @@ class EndbossAnimation extends EndbossBase {
         this.deathImageIndex = 0;
         this.lastDeathFrameTime = 0;
         this.resetDeathAttackState();
+
+        audioManager.playSound('bossDeath', 0.7);
     }
 
     /**

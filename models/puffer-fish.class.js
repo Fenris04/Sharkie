@@ -190,14 +190,17 @@ class PufferFish extends MovableObject {
     }
 
     /**
-     * Defeats the enemy.
-     *
-     * @returns {void}
-     */
+    * Defeats the enemy and plays its death sound.
+    *
+    * @returns {void}
+    */
     die() {
         if (this.dead) return;
+
         this.dead = true;
         this.img = this.deadImage;
+
+        audioManager.playSound('pop', 0.6, 1.2);
     }
 
     /**
