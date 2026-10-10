@@ -4,13 +4,16 @@
  */
 class CharacterAnimation extends CharacterBase {
 
+    /** @type {number} Timestamp of the last idle sound. */
+    lastIdleSound = 0;
+
     /**
      * Selects the animation matching Sharkie's current state.
      *
      * @returns {void}
      */
     updateAnimation() {
-        if (this.isDead()) {
+            if (this.isDead()) {
             this.playDeathAnimation();
         } else if (this.isHurt()) {
             this.playHurtAnimation();
@@ -21,7 +24,7 @@ class CharacterAnimation extends CharacterBase {
         } else if (this.isMoving()) {
             this.playAnimation(this.swimImages);
         } else {
-            this.playAnimation(this.idleImages);
+            this.playIdleAnimation();
         }
     }
 
@@ -212,6 +215,7 @@ class CharacterAnimation extends CharacterBase {
         this.isAttacking = false;
         this.isBubbleAttacking = false;
         this.currentImage = 0;
+        audioManager.playSound('damage', 0.45);
     }
 
     /**
@@ -311,5 +315,28 @@ class CharacterAnimation extends CharacterBase {
         }
 
         return this.deadImages;
+    }
+
+    /**
+    * Plays Sharkie's idle animation and occasional bubble sounds.
+    *
+    * @returns {void}
+    */
+    playIdleAnimation() {
+        this.playAnimation(this.idleImages);
+        this.playIdleSound();
+    }
+
+    /**
+    * Plays an idle sound at most once every eight seconds.
+    *
+    * @returns {void}
+    */
+    playIdleSound() {
+        const now = this.getGameTime();
+        if (now - this.lastIdleSound < 8000) return;
+
+        audioManager.playSound('idle', 0.15);
+        this.lastIdleSound = now;
     }
 }

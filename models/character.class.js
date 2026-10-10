@@ -142,10 +142,10 @@ class Character extends CharacterAnimation {
     }
 
     /**
-     * Creates a bubble projectile in front of Sharkie.
-     *
-     * @returns {void}
-     */
+    * Creates a bubble projectile and plays its sound.
+    *
+    * @returns {void}
+    */
     shootBubble() {
         const bubbleX = this.otherDirection
             ? this.x + 35
@@ -156,5 +156,7 @@ class Character extends CharacterAnimation {
         this.world.bubbles.push(
             new Bubble(bubbleX, bubbleY, this.otherDirection, this.world)
         );
+
+        audioManager.playSound('bubble', 0.45);
     }
 }
