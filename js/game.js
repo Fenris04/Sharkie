@@ -20,8 +20,7 @@ function init() {
     addPauseEvents();
     addEscapeEvent();
     addInitialMenuMusicEvent();
-    document.getElementById('sound-button')
-    .addEventListener('click', toggleGameSound);
+    addSoundButtonEvent();
 }
 
 /**
@@ -307,7 +306,15 @@ function startInitialMenuMusic() {
  */
 function toggleGameSound() {
     audioManager.toggleMute();
+    updateSoundButton();
+}
 
+/**
+ * Updates the sound button to match the current mute state.
+ *
+ * @returns {void}
+ */
+function updateSoundButton() {
     const button = document.getElementById('sound-button');
     const muted = audioManager.muted;
 
@@ -315,6 +322,17 @@ function toggleGameSound() {
     button.setAttribute('aria-label', muted ? 'Unmute sound' : 'Mute sound');
     button.setAttribute('aria-pressed', String(muted));
     button.title = muted ? 'Unmute sound' : 'Mute sound';
+}
+
+/**
+ * Initializes the sound button and its click event.
+ *
+ * @returns {void}
+ */
+function addSoundButtonEvent() {
+    const button = document.getElementById('sound-button');
+    button.addEventListener('click', toggleGameSound);
+    updateSoundButton();
 }
 
 init();

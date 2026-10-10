@@ -13,7 +13,7 @@ class AudioManager {
     currentMusic = null;
 
     /** @type {boolean} Whether audio is muted. */
-    muted = false;
+    muted = localStorage.getItem('sharkieMuted') === 'true';
 
     /** @type {Set<HTMLAudioElement>} Active sound effects. */
     activeEffects = new Set();
@@ -117,12 +117,15 @@ class AudioManager {
     }
 
     /**
-     * Resumes all paused audio.
-     *
-     * @returns {void}
-     */
+    * Resumes paused audio while respecting the mute setting.
+    *
+    * @returns {void}
+    */
     resumeAll() {
+        if (this.muted) return;
+
         this.currentMusic?.play().catch(() => {});
+
         this.activeEffects.forEach(sound => {
             if (!sound.ended) sound.play().catch(() => {});
         });
@@ -142,13 +145,20 @@ class AudioManager {
     }
 
     /**
-     * Enables or disables all audio.
-     *
-     * @returns {void}
-     */
+    * Enables or disables all audio and saves the preference.
+    *
+    * @returns {void}
+    */
     toggleMute() {
         this.muted = !this.muted;
-        if (this.currentMusic) this.currentMusic.muted = this.muted;
-        this.activeEffects.forEach(sound => sound.muted = this.muted);
+        localStorage.setItem('sharkieMuted', String(this.muted));
+
+        if (this.currentMusic) {
+            this.currentMusic.muted = this.muted;
+        }
+
+        this.activeEffects.forEach(sound => {
+            sound.muted = this.muted;
+        });
     }
 }
