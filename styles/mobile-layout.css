@@ -1,0 +1,95 @@
+/* Portrait orientation notice */
+.rotate-device {
+  display: none;
+}
+
+/* Simplified mobile layout */
+@media (hover: none) and (pointer: coarse) {
+  body > h1 {
+    display: none;
+  }
+
+  body {
+    min-height: 100dvh;
+  }
+
+  .game-footer {
+    padding: 4px 8px;
+    margin-top: 4px;
+  }
+
+  .game-footer .footer-link {
+    font-size: 12px;
+  }
+
+  .game-footer.hidden {
+    display: none;
+  }
+}
+
+/* Mobile landscape layout */
+@media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+  body {
+    justify-content: center;
+  }
+
+  .game-container {
+    width: min(
+      720px,
+      calc(100vw - 16px),
+      calc((100dvh - 50px) * 1.5)
+    );
+  }
+
+  .game-top-bar {
+    padding-bottom: 4px;
+  }
+}
+
+/* Mobile portrait orientation lock */
+@media (hover: none) and (pointer: coarse) and (orientation: portrait) {
+  body {
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .game-container {
+    display: none;
+  }
+
+  .rotate-device {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+
+    box-sizing: border-box;
+    padding: 24px;
+
+    background: linear-gradient(180deg, #08364e, #041b2c);
+    color: #ffffff;
+    text-align: center;
+  }
+
+  .rotate-icon {
+    font-size: 72px;
+  }
+
+  .rotate-device h2 {
+    margin: 0;
+    color: #ffd700;
+    font-size: clamp(24px, 7vw, 36px);
+  }
+
+  .rotate-device p {
+    max-width: 320px;
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+}

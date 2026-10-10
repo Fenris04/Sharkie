@@ -33,6 +33,7 @@ function startGame() {
     hideEndScreens();
     hidePauseScreen();
     hideStartScreen();
+    setFooterVisibility(false);
     showMenuButton();
     world = new World(canvas);
     audioManager.stopEffects();
@@ -60,6 +61,7 @@ function returnToMenu() {
     hideEndScreens();
     hideMenuButton();
     showStartScreen();
+    setFooterVisibility(true);
     audioManager.playMusic('menu');
 }
 
@@ -333,6 +335,17 @@ function addSoundButtonEvent() {
     const button = document.getElementById('sound-button');
     button.addEventListener('click', toggleGameSound);
     updateSoundButton();
+}
+
+/**
+ * Shows or hides the legal footer.
+ *
+ * @param {boolean} visible - Whether the footer should be visible.
+ * @returns {void}
+ */
+function setFooterVisibility(visible) {
+    document.querySelector('.game-footer')
+        .classList.toggle('hidden', !visible);
 }
 
 init();
