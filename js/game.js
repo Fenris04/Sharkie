@@ -1,9 +1,11 @@
-
 /** @type {HTMLCanvasElement} Canvas on which the game is rendered. */
 let canvas;
 
 /** @type {World|null} The currently active game world. */
 let world = null;
+
+/** @type {AudioManager} Manages music and sound effects. */
+const audioManager = new AudioManager();
 
 /**
  * Initializes the Sharkie game without starting the world.
@@ -17,10 +19,11 @@ function init() {
     addMenuEvent();
     addPauseEvents();
     addEscapeEvent();
+    addInitialMenuMusicEvent();
 }
 
 /**
- * Creates a new game world and hides all menu and end screens.
+ * Creates a new game world and starts gameplay music.
  *
  * @returns {void}
  */
@@ -31,6 +34,8 @@ function startGame() {
     hideStartScreen();
     showMenuButton();
     world = new World(canvas);
+    audioManager.stopEffects();
+    audioManager.playMusic('game');
 }
 
 /**
@@ -54,6 +59,7 @@ function returnToMenu() {
     hideEndScreens();
     hideMenuButton();
     showStartScreen();
+    audioManager.playMusic('menu');
 }
 
 /**
@@ -68,6 +74,7 @@ function openPauseMenu() {
     resetKeyboardControls();
     releaseTouchControls();
     world.pause();
+    audioManager.pauseAll();
     showPauseScreen();
     document.getElementById('resume-button').focus();
 }
@@ -84,6 +91,7 @@ function closePauseMenu() {
     releaseTouchControls();
     hidePauseScreen();
     world.resume();
+    audioManager.resumeAll();
     document.getElementById('menu-button').focus();
 }
 
@@ -95,6 +103,8 @@ function closePauseMenu() {
 function stopCurrentGame() {
     resetKeyboardControls();
     releaseTouchControls();
+    audioManager.stopEffects();
+    audioManager.stopMusic();
     if (!world) return;
 
     world.stop();
@@ -265,6 +275,27 @@ function hideMenuButton() {
 function hideEndScreens() {
     document.getElementById('game-over-screen').classList.remove('visible');
     document.getElementById('you-win-screen').classList.remove('visible');
+}
+
+/**
+ * Starts menu music after the first user interaction.
+ *
+ * @returns {void}
+ */
+function addInitialMenuMusicEvent() {
+    document.addEventListener('pointerdown', startInitialMenuMusic, {
+        once: true
+    });
+}
+
+/**
+ * Starts menu music only while the main menu is visible.
+ *
+ * @returns {void}
+ */
+function startInitialMenuMusic() {
+    if (world) return;
+    audioManager.playMusic('menu');
 }
 
 init();
