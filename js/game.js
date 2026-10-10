@@ -20,7 +20,10 @@ function init() {
     addPauseEvents();
     addEscapeEvent();
     addInitialMenuMusicEvent();
-    addSoundButtonEvent();
+    preventGameContextMenu();
+
+    document.getElementById('sound-button')
+        .addEventListener('click', toggleGameSound);
 }
 
 /**
@@ -346,6 +349,20 @@ function addSoundButtonEvent() {
 function setFooterVisibility(visible) {
     document.querySelector('.game-footer')
         .classList.toggle('hidden', !visible);
+}
+
+/**
+ * Prevents context menus on game controls.
+ *
+ * @returns {void}
+ */
+function preventGameContextMenu() {
+    document.querySelectorAll('.touch-button, canvas')
+        .forEach(element => {
+            element.addEventListener('contextmenu', event => {
+                event.preventDefault();
+            });
+        });
 }
 
 init();
