@@ -11,12 +11,12 @@ class Character extends CharacterAnimation {
      * The attack hitbox.
      */
     getAttackHitbox() {
-        const width = 80;
-        const height = 90;
+        const width = 45;
+        const height = 65;
 
         return {
             x: this.getAttackHitboxX(width),
-            y: this.y + 95,
+            y: this.y + 110,
             width: width,
             height: height
         };

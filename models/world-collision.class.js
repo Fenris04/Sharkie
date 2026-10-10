@@ -45,13 +45,15 @@ class WorldCollision extends WorldRender {
     }
 
     /**
-     * Applies damage and updates Sharkie's health bar.
-     *
-     * @param {number} damage - Damage amount.
-     * @param {string} type - Damage type.
-     * @returns {void}
-     */
+    * Applies damage unless Sharkie is performing a fin slap.
+    *
+    * @param {number} damage - Damage amount.
+    * @param {string} type - Damage type.
+    * @returns {void}
+    */
     damageCharacter(damage = 20, type = 'poison') {
+        if (this.character.isAttacking) return;
+
         this.character.hit(damage, type);
         this.statusBar.setPercentage(this.character.energy);
     }

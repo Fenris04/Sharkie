@@ -4,7 +4,7 @@
 class MovableObject extends DrawableObject {
 
     /** @type {number} Movement speed in pixels. */
-    speed = 5;
+    speed = 4.5;
 
     /** @type {boolean} Whether the object faces left. */
     otherDirection = false;

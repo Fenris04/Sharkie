@@ -182,7 +182,7 @@ class CharacterAnimation extends CharacterBase {
      * @returns {boolean} Whether movement is possible.
      */
     canMoveUp() {
-        return this.y > 0;
+        return this.getTop() > 0;
     }
 
     /**
@@ -191,7 +191,8 @@ class CharacterAnimation extends CharacterBase {
      * @returns {boolean} Whether movement is possible.
      */
     canMoveDown() {
-        return this.y + this.height < 480;
+        const bottomLimit = this.world.canvas.height - 10;
+        return this.getBottom() + this.speed <= bottomLimit;
     }
 
     /**
