@@ -66,14 +66,18 @@ class CharacterAnimation extends CharacterBase {
     }
 
     /**
-     * Plays the death animation matching the damage type.
-     *
-     * @returns {void}
-     */
+    * Plays the death animation and its sound once.
+    *
+    * @returns {void}
+    */
     playDeathAnimation() {
         if (this.deathAnimationFinished) return;
 
         const images = this.getDeathImages();
+
+        if (this.currentImage === 0) {
+            audioManager.playSound('sharkieDeath', 0.7);
+        }
 
         if (this.currentImage < images.length) {
             this.img = images[this.currentImage];

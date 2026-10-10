@@ -39,6 +39,7 @@ class AudioManager {
             finSlap: 'swosh-01.wav',
             damage: 'damage_taken.mp3',
             electric: 'electric-hit.wav',
+            sharkieDeath: '1yell3.wav',
             bite: 'crunchybite.ogg',
             pop: 'pop1.wav',
             coin: 'coin.wav',
