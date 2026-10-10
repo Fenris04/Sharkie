@@ -42,7 +42,7 @@ class PufferFish extends MovableObject {
     offsetRight = 10;
 
     /** @type {number} Bottom offset of the collision box. */
-    offsetBottom = 10;
+    offsetBottom = 18;
 
     /** @type {number} Left offset of the collision box. */
     offsetLeft = 10;

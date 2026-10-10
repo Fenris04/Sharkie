@@ -4,6 +4,9 @@
  */
 class WorldRender extends WorldBase {
 
+    /** @type {boolean} Whether collision hitboxes are visible. */
+    showHitboxes = false;
+
     /**
      * Clears the visible canvas.
      *
@@ -64,23 +67,31 @@ class WorldRender extends WorldBase {
     }
 
     /**
-     * Draws Sharkie without visible debug hitboxes.
-     *
-     * @returns {void}
-     */
+    * Draws Sharkie and optionally displays his collision hitbox.
+    *
+    * @returns {void}
+    */
     drawCharacterAndHitboxes() {
         this.character.draw(this.ctx);
+
+        if (this.showHitboxes) {
+            this.character.drawHitbox(this.ctx);
+        }
     }
 
     /**
-     * Draws every object in an array.
-     *
-     * @param {DrawableObject[]} objects - Objects to draw.
-     * @returns {void}
-     */
+    * Draws objects and optionally displays their collision hitboxes.
+    *
+    * @param {DrawableObject[]} objects - Objects to draw.
+    * @returns {void}
+    */
     addObjectsToMap(objects) {
         objects.forEach(object => {
             object.draw(this.ctx);
+
+            if (this.showHitboxes && object.drawHitbox) {
+                object.drawHitbox(this.ctx);
+            }
         });
     }
 

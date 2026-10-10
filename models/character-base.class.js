@@ -62,7 +62,7 @@ class CharacterBase extends MovableObject {
     animationInterval = null;
 
     /** @type {number} Top collision offset. */
-    offsetTop = 105;
+    offsetTop = 120;
 
     /** @type {number} Right collision offset. */
     offsetRight = 55;
