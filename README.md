@@ -293,27 +293,6 @@ Bei der Entwicklung wurde auf eine übersichtliche
 Dateistruktur und kleine, klar abgegrenzte
 Funktionen geachtet.
 
-## 🚀 Projekt lokal starten
-
-Für das Spiel ist keine Installation von Abhängigkeiten
-erforderlich.
-
-1. Repository herunterladen oder klonen.
-2. Projektordner in Visual Studio Code öffnen.
-3. Einen lokalen Entwicklungsserver starten,
-   beispielsweise mit der Erweiterung Live Server.
-4. `index.html` im Browser öffnen.
-5. Auf **Start Game** klicken.
-
-Das Spiel kann anschließend direkt im Browser gespielt werden.
-
-**Hinweis:** Moderne Browser verhindern häufig das
-automatische Abspielen von Audio ohne vorherige
-Benutzerinteraktion.
-
-Die Hintergrundmusik startet deshalb nach einer
-entsprechenden Interaktion mit der Webseite.
-
 ## 🎯 Spielziel
 
 Sammle Münzen, überlebe die Begegnungen mit den
