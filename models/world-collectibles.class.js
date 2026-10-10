@@ -13,6 +13,7 @@ class WorldCollectibles extends WorldCollision {
         this.coins.forEach(coin => {
             if (this.character.isColliding(coin)) {
                 this.collectCoin(coin);
+                audioManager.playSound('coin', 0.4);
             }
         });
 
@@ -46,6 +47,7 @@ class WorldCollectibles extends WorldCollision {
         this.poisonBottles.forEach(bottle => {
             if (this.canCollectPoisonBottle(bottle)) {
                 this.collectPoisonBottle(bottle);
+                audioManager.playSound('potion', 0.4);
             }
         });
 

@@ -215,7 +215,8 @@ class CharacterAnimation extends CharacterBase {
         this.isAttacking = false;
         this.isBubbleAttacking = false;
         this.currentImage = 0;
-        audioManager.playSound('damage', 0.45);
+        const sound = type === 'electric' ? 'electric' : 'damage';
+        audioManager.playSound(sound, 0.45);
     }
 
     /**

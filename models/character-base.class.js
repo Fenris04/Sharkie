@@ -246,13 +246,14 @@ class CharacterBase extends MovableObject {
     }
 
     /**
-     * Starts a fin-slap attack.
-     *
-     * @returns {void}
-     */
+    * Starts a fin-slap attack and plays its sound.
+    *
+    * @returns {void}
+    */
     startAttack() {
         this.isAttacking = true;
         this.attackKeyLocked = true;
         this.currentImage = 0;
+        audioManager.playSound('finSlap', 0.4);
     }
 }

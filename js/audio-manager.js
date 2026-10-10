@@ -36,10 +36,13 @@ class AudioManager {
             game: 'game-music.mp3',
             idle: 'bubbles-loop2-amp.wav',
             bubble: 'bubbles-single2.wav',
+            finSlap: 'swosh-01.wav',
             damage: 'damage_taken.mp3',
+            electric: 'electric-hit.wav',
             bite: 'crunchybite.ogg',
             pop: 'pop1.wav',
             coin: 'coin.wav',
+            potion: 'potion-pickup.wav',
             victory: 'Clear Skies.mp3',
             gameOver: 'game_over_bad_chest.wav'
         };
